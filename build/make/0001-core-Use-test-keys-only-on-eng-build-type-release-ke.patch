@@ -1,0 +1,32 @@
+From 86d1b0eca4e43042cd0ef4fe7a1b4774051e237d Mon Sep 17 00:00:00 2001
+From: penglezos <panagiotisegl@gmail.com>
+Date: Sat, 5 Nov 2022 20:37:14 +0200
+Subject: [PATCH] core: Use 'test-keys' only on eng build type & release-keys
+ for rest build variants
+
+Change-Id: Iaac5207fd881a080fcb1784a99be3e73420de5a7
+Signed-off-by: penglezos <panagiotisegl@gmail.com>
+---
+ core/sysprop.mk | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/core/sysprop.mk b/core/sysprop.mk
+index 5ff93a13e7..53e6763ab4 100644
+--- a/core/sysprop.mk
++++ b/core/sysprop.mk
+@@ -159,10 +159,10 @@ endif
+ # non-default dev keys (usually private keys from a vendor directory).
+ # Both of these tags will be removed and replaced with "release-keys"
+ # when the target-files is signed in a post-build step.
+-ifeq ($(DEFAULT_SYSTEM_DEV_CERTIFICATE),build/make/target/product/security/testkey)
++ifeq ($(TARGET_BUILD_VARIANT),eng)
+ BUILD_KEYS := test-keys
+ else
+-BUILD_KEYS := dev-keys
++BUILD_KEYS := release-keys
+ endif
+ BUILD_VERSION_TAGS += $(BUILD_KEYS)
+ BUILD_VERSION_TAGS := $(subst $(space),$(comma),$(sort $(BUILD_VERSION_TAGS)))
+-- 
+2.38.2
+
