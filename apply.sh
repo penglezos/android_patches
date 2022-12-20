@@ -8,7 +8,7 @@
 echo $1
 rootdirectory="$PWD"
 
-dirs="frameworks/base"
+dirs="frameworks/base build/make"
 
 for dir in $dirs ; do
 	cd $rootdirectory
