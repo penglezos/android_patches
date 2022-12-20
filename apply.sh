@@ -13,6 +13,9 @@ dirs="frameworks/base build/make"
 for dir in $dirs ; do
 	cd $rootdirectory
 	cd $dir
+	echo "Cleaning $dir patches..."
+	git reset --hard
+	git clean -f -d
 	echo "Applying $dir patches..."
 	git apply $rootdirectory/patches/$dir/*.patch
 done
