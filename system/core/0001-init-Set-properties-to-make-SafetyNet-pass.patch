@@ -1,0 +1,57 @@
+From 6a68bb444dc9edccb062fed1cce4055eb00fb67e Mon Sep 17 00:00:00 2001
+From: Danny Lin <danny@kdrag0n.dev>
+Date: Wed, 7 Oct 2020 00:24:54 -0700
+Subject: [PATCH 1/2] init: Set properties to make SafetyNet pass
+
+Google's SafetyNet integrity checks will check the values of these
+properties when performing basic attestation. Setting fake values helps
+us pass basic SafetyNet with no Magisk Hide or kernel patches necessary.
+
+Note that these properties need to be set very early, before parsing the
+kernel command-line, as they are read-only properties that the bootloader
+sets using androidboot kernel arguments. The bootloader's real values
+cause SafetyNet to fail with an unlocked bootloader and/or custom
+software because the verified boot chain is broken in that case.
+
+Change-Id: I66d23fd91d82906b00d5eb020668f01ae83ec31f
+Signed-off-by: Omkar Chandorkar <gotenksIN@aospa.co>
+---
+ init/property_service.cpp | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/init/property_service.cpp b/init/property_service.cpp
+index 8db414a97..2a38b31ee 100644
+--- a/init/property_service.cpp
++++ b/init/property_service.cpp
+@@ -1286,6 +1286,15 @@ static void ProcessBootconfig() {
+     });
+ }
+ 
++static void SetSafetyNetProps() {
++
++    InitPropertySet("ro.boot.flash.locked", "1");
++    InitPropertySet("ro.boot.vbmeta.device_state", "locked");
++    InitPropertySet("ro.boot.verifiedbootstate", "green");
++    InitPropertySet("ro.boot.veritymode", "enforcing");
++
++}
++
+ void PropertyInit() {
+     selinux_callback cb;
+     cb.func_audit = PropertyAuditCallback;
+@@ -1300,6 +1309,12 @@ void PropertyInit() {
+         LOG(FATAL) << "Failed to load serialized property info file";
+     }
+ 
++    // Report a valid verified boot chain to make Google SafetyNet integrity
++    // checks pass. This needs to be done before parsing the kernel cmdline as
++    // these properties are read-only and will be set to invalid values with
++    // androidboot cmdline arguments.
++      SetSafetyNetProps();
++
+     // If arguments are passed both on the command line and in DT,
+     // properties set in DT always have priority over the command-line ones.
+     ProcessKernelDt();
+-- 
+2.38.2
+
