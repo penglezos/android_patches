@@ -20,5 +20,4 @@ for dir in $dirs ; do
 	git apply $rootdirectory/patches/$dir/*.patch
 done
 
-echo "Patches applied. Changing to root directory."
 cd $rootdirectory
