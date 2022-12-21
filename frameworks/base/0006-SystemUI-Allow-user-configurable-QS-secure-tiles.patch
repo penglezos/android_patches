@@ -1,0 +1,38 @@
+From 9d6d3909b80f8a2d612aadbd2f9fc355e3d3a831 Mon Sep 17 00:00:00 2001
+From: penglezos <panagiotisegl@gmail.com>
+Date: Mon, 21 Nov 2022 11:30:38 +0200
+Subject: [PATCH 2/3] SystemUI: Allow user configurable QS secure tiles
+
+Change-Id: Ie7ae6b4fa5b8d5511016bfdbbefc3385ec80e577
+Signed-off-by: penglezos <panagiotisegl@gmail.com>
+---
+ .../src/com/android/systemui/qs/tiles/SecureQSTile.kt       | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/qs/tiles/SecureQSTile.kt b/packages/SystemUI/src/com/android/systemui/qs/tiles/SecureQSTile.kt
+index 30a5461fbb59..db982acc457f 100644
+--- a/packages/SystemUI/src/com/android/systemui/qs/tiles/SecureQSTile.kt
++++ b/packages/SystemUI/src/com/android/systemui/qs/tiles/SecureQSTile.kt
+@@ -28,6 +28,8 @@ import com.android.systemui.qs.logging.QSLogger
+ import com.android.systemui.statusbar.policy.KeyguardStateController
+ import com.android.systemui.qs.tileimpl.QSTileImpl
+ 
++import lineageos.providers.LineageSettings;
++
+ internal abstract class SecureQSTile<TState : QSTile.State> protected constructor(
+     host: QSHost, backgroundLooper: Looper, mainHandler: Handler, falsingManager: FalsingManager,
+     metricsLogger: MetricsLogger, statusBarStateController: StatusBarStateController,
+@@ -42,7 +44,9 @@ internal abstract class SecureQSTile<TState : QSTile.State> protected constructo
+     protected abstract fun handleClick(view: View?, keyguardShowing: Boolean)
+ 
+     override fun handleClick(view: View?) {
+-        handleClick(view, mKeyguard.isMethodSecure && mKeyguard.isShowing)
++        val enabled: Boolean = LineageSettings.Secure.getInt(mContext.getContentResolver(),
++            LineageSettings.Secure.QS_TILES_REQUIRES_UNLOCKING, 1) == 1
++        handleClick(view, mKeyguard.isMethodSecure && mKeyguard.isShowing && enabled)
+     }
+ 
+     protected fun checkKeyguard(view: View?, keyguardShowing: Boolean): Boolean {
+-- 
+2.38.2
+
