@@ -1,0 +1,87 @@
+From 8d4ab9bc39da3047300176835b1ded2b07740074 Mon Sep 17 00:00:00 2001
+From: Adithya R <gh0strider.2k18.reborn@gmail.com>
+Date: Thu, 25 Feb 2021 17:37:27 +0530
+Subject: [PATCH 1/2] Settings: Add missing icons in Network and Internet
+
+ * Updated for Android 13 - add to provider model as well
+
+Change-Id: Ie063edea690239ffd4b3e750652753e44a024996
+Signed-off-by: penglezos <panagiotisegl@gmail.com>
+---
+ res/drawable/ic_settings_mobile_plan.xml | 8 ++++++++
+ res/drawable/ic_settings_private_dns.xml | 6 ++++++
+ res/xml/network_and_internet.xml         | 2 ++
+ res/xml/network_provider_internet.xml    | 2 ++
+ 4 files changed, 18 insertions(+)
+ create mode 100644 res/drawable/ic_settings_mobile_plan.xml
+ create mode 100644 res/drawable/ic_settings_private_dns.xml
+
+diff --git a/res/drawable/ic_settings_mobile_plan.xml b/res/drawable/ic_settings_mobile_plan.xml
+new file mode 100644
+index 0000000000..20e8f1bdd2
+--- /dev/null
++++ b/res/drawable/ic_settings_mobile_plan.xml
+@@ -0,0 +1,8 @@
++<?xml version="1.0" encoding="utf-8"?>
++<vector xmlns:android="http://schemas.android.com/apk/res/android" android:tint="?android:attr/colorControlNormal" android:height="24dp" android:width="24dp" android:viewportWidth="24" android:viewportHeight="24">
++    <group>
++        <group android:translateX="1" android:translateY="1">
++            <path android:fillColor="#000000" android:pathData="M18.25,1.75 L3.75,1.75 L3.75,20.25 L14,20.25 C16.347155,20.25 18.25,18.3474179 18.25,16 L18.25,1.75 Z M19.75,1.75 L19.75,16 C19.75,19.1758914 17.1755358,21.75 14,21.75 L3,21.75 C2.58578644,21.75 2.25,21.4142136 2.25,21 L2.25,1.75 L0,1.75 L0,0.25 L22,0.25 L22,1.75 L19.75,1.75 Z M7,6.75 L7,5.25 L14,5.25 L14,6.75 L7,6.75 Z M7,14.75 L7,13.25 L12,13.25 L12,14.75 L7,14.75 Z M7,10.75 L7,9.25 L15,9.25 L15,10.75 L7,10.75 Z" android:strokeWidth="1"/>
++        </group>
++    </group>
++</vector>
+diff --git a/res/drawable/ic_settings_private_dns.xml b/res/drawable/ic_settings_private_dns.xml
+new file mode 100644
+index 0000000000..f9bd6746a6
+--- /dev/null
++++ b/res/drawable/ic_settings_private_dns.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="utf-8"?>
++<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt" android:tint="?android:attr/colorControlNormal" android:height="24dp" android:width="24dp" android:viewportWidth="24" android:viewportHeight="24">
++    <group android:translateX="1" android:translateY="3">
++        <path android:fillColor="#000000" android:pathData="M20 8.25C20.1380712 8.25 20.25 8.13807119 20.25 8L20.25 2C20.25 1.86192881 20.1380712 1.75 20 1.75L2 1.75C1.86192881 1.75 1.75 1.86192881 1.75 2L1.75 8C1.75 8.13807119 1.86192881 8.25 2 8.25L20 8.25ZM20 9.75L2 9.75C1.03350169 9.75 0.25 8.96649831 0.25 8L0.25 2C0.25 1.03350169 1.03350169 0.25 2 0.25L20 0.25C20.9664983 0.25 21.75 1.03350169 21.75 2L21.75 8C21.75 8.96649831 20.9664983 9.75 20 9.75ZM21.75 16C21.75 16.9664983 20.9664983 17.75 20 17.75L2 17.75C1.03350169 17.75 0.25 16.9664983 0.25 16L0.25 10C0.25 9.03350169 1.03350169 8.25 2 8.25L20 8.25C20.9664983 8.25 21.75 9.03350169 21.75 10L21.75 16ZM20.25 16L20.25 10C20.25 9.86192881 20.1380712 9.75 20 9.75L2 9.75C1.86192881 9.75 1.75 9.86192881 1.75 10L1.75 16C1.75 16.1380712 1.86192881 16.25 2 16.25L20 16.25C20.1380712 16.25 20.25 16.1380712 20.25 16ZM5.5 6.25C4.80964406 6.25 4.25 5.69035594 4.25 5C4.25 4.30964406 4.80964406 3.75 5.5 3.75C6.19035594 3.75 6.75 4.30964406 6.75 5C6.75 5.69035594 6.19035594 6.25 5.5 6.25ZM5.5 14.25C4.80964406 14.25 4.25 13.6903559 4.25 13C4.25 12.3096441 4.80964406 11.75 5.5 11.75C6.19035594 11.75 6.75 12.3096441 6.75 13C6.75 13.6903559 6.19035594 14.25 5.5 14.25ZM9 5.75L9 4.25L18 4.25L18 5.75L9 5.75ZM9 13.75L9 12.25L18 12.25L18 13.75L9 13.75Z"/>
++    </group>
++</vector>
+diff --git a/res/xml/network_and_internet.xml b/res/xml/network_and_internet.xml
+index 2162c96eb8..0b92ab643f 100644
+--- a/res/xml/network_and_internet.xml
++++ b/res/xml/network_and_internet.xml
+@@ -64,6 +64,7 @@
+     <com.android.settingslib.RestrictedPreference
+         android:key="manage_mobile_plan"
+         android:title="@string/manage_mobile_plan_title"
++        android:icon="@drawable/ic_settings_mobile_plan"
+         android:persistent="false"
+         android:order="19"
+         settings:userRestriction="no_config_mobile_networks"
+@@ -112,6 +113,7 @@
+     <com.android.settings.network.PrivateDnsModeDialogPreference
+         android:key="private_dns_settings"
+         android:title="@string/select_private_dns_configuration_title"
++        android:icon="@drawable/ic_settings_private_dns"
+         android:order="20"
+         android:dialogTitle="@string/select_private_dns_configuration_dialog_title"
+         android:dialogLayout="@layout/private_dns_mode_dialog"
+diff --git a/res/xml/network_provider_internet.xml b/res/xml/network_provider_internet.xml
+index 07e797a07c..9f7ccb312d 100644
+--- a/res/xml/network_provider_internet.xml
++++ b/res/xml/network_provider_internet.xml
+@@ -63,6 +63,7 @@
+     <com.android.settingslib.RestrictedPreference
+         android:key="manage_mobile_plan"
+         android:title="@string/manage_mobile_plan_title"
++        android:icon="@drawable/ic_settings_mobile_plan"
+         android:persistent="false"
+         android:order="19"
+         settings:userRestriction="no_config_mobile_networks"
+@@ -111,6 +112,7 @@
+     <com.android.settings.network.PrivateDnsModeDialogPreference
+         android:key="private_dns_settings"
+         android:title="@string/select_private_dns_configuration_title"
++        android:icon="@drawable/ic_settings_private_dns"
+         android:order="20"
+         android:dialogTitle="@string/select_private_dns_configuration_dialog_title"
+         android:dialogLayout="@layout/private_dns_mode_dialog"
+-- 
+2.38.2
+
