@@ -8,7 +8,7 @@
 echo $1
 rootdirectory="$PWD"
 
-dirs="frameworks/base build/make"
+dirs="frameworks/base build/make packages/apps packages/modules/ lineage-sdk"
 
 for dir in $dirs ; do
 	cd $rootdirectory
