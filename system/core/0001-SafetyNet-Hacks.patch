@@ -1,0 +1,601 @@
+From c797ee64cc872cc7da9197066bba4f1786c43dc6 Mon Sep 17 00:00:00 2001
+From: Alex Naidis <alex.naidis@linux.com>
+Date: Sun, 9 Apr 2017 01:29:27 +0200
+Subject: [PATCH 1/9] init: Weaken property override security for the init
+ extension
+
+Sometimes we need to override ro.* properties by using our vendor init
+extension.
+
+Previously there was a security check which was blocking that.
+To resolve the issue, we need to weaken the security check during the
+execution of our vendor init extension.
+
+This is safe because the vendor init extension gets executed as part of init
+construction and it is considered a trusted system component.
+
+Change-Id: I6095bbf92267fcb78ab53f37b5d7b443239ce80b
+---
+ init/property_service.cpp | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/init/property_service.cpp b/init/property_service.cpp
+index 8db414a97..0cc69cc65 100644
+--- a/init/property_service.cpp
++++ b/init/property_service.cpp
+@@ -119,6 +119,8 @@ struct PropertyAuditData {
+     const char* name;
+ };
+ 
++static bool weaken_prop_override_security = false;
++
+ static int PropertyAuditCallback(void* data, security_class_t /*cls*/, char* buf, size_t len) {
+     auto* d = reinterpret_cast<PropertyAuditData*>(data);
+ 
+@@ -189,8 +191,8 @@ static uint32_t PropertySet(const std::string& name, const std::string& value, s
+ 
+     prop_info* pi = (prop_info*) __system_property_find(name.c_str());
+     if (pi != nullptr) {
+-        // ro.* properties are actually "write-once".
+-        if (StartsWith(name, "ro.")) {
++        // ro.* properties are actually "write-once", unless the system decides to
++        if (StartsWith(name, "ro.") && !weaken_prop_override_security) {
+             *error = "Read-only property was already set";
+             return PROP_ERROR_READ_ONLY_PROPERTY;
+         }
+@@ -1133,6 +1135,9 @@ void PropertyLoadBootDefaults() {
+         }
+     }
+ 
++    // Weaken property override security during execution of the vendor init extension
++    weaken_prop_override_security = true;
++
+     // Update with vendor-specific property runtime overrides
+     vendor_load_properties();
+ 
+@@ -1144,6 +1149,9 @@ void PropertyLoadBootDefaults() {
+     property_initialize_ro_vendor_api_level();
+ 
+     update_sys_usb_config();
++
++    // Restore the normal property override security after init extension is executed
++    weaken_prop_override_security = false;
+ }
+ 
+ bool LoadPropertyInfoFromFile(const std::string& filename,
+-- 
+2.39.0
+
+
+From a578e6024268e144174e2ff8bf6241f2d2a545b8 Mon Sep 17 00:00:00 2001
+From: Park Ju Hyung <qkrwngud825@gmail.com>
+Date: Mon, 6 Nov 2017 20:30:39 +0900
+Subject: [PATCH 2/9] init: workaround SafetyNet check
+
+Doing this in the userspace allows more properties to be spoofed
+and eliminate the needs for a hack in the kernel.
+
+Change-Id: I6ad755c085491c958c8a7d75db7df2c8e5481a55
+---
+ init/property_service.cpp | 47 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
+
+diff --git a/init/property_service.cpp b/init/property_service.cpp
+index 0cc69cc65..1cf275452 100644
+--- a/init/property_service.cpp
++++ b/init/property_service.cpp
+@@ -798,6 +798,50 @@ static void load_override_properties() {
+     }
+ }
+ 
++static const char *snet_prop_key[] = {
++	"ro.boot.vbmeta.device_state",
++	"ro.boot.verifiedbootstate",
++	"ro.boot.flash.locked",
++	"ro.boot.selinux",
++	"ro.boot.veritymode",
++	"ro.boot.warranty_bit",
++	"ro.warranty_bit",
++	"ro.debuggable",
++	"ro.secure",
++	"ro.build.type",
++	"ro.build.keys",
++	"ro.build.tags",
++	"ro.system.build.tags",
++	NULL
++};
++
++static const char *snet_prop_value[] = {
++	"locked", // ro.boot.vbmeta.device_state
++	"green", // ro.boot.verifiedbootstate
++	"1", // ro.boot.flash.locked
++	"enforcing", // ro.boot.selinux
++	"enforcing", // ro.boot.veritymode
++	"0", // ro.boot.warranty_bit
++	"0", // ro.warranty_bit
++	"0", // ro.debuggable
++	"1", // ro.secure
++	"user", // ro.build.type
++	"release-keys", // ro.build.keys
++	"release-keys", // ro.build.tags
++	"release-keys", // ro.system.build.tags
++	NULL
++};
++
++static void workaround_snet_properties() {
++	std::string error;
++	LOG(INFO) << "snet: Hiding sensitive props";
++
++	// Hide all sensitive props
++	for (int i = 0; snet_prop_key[i]; ++i) {
++		PropertySet(snet_prop_key[i], snet_prop_value[i], &error);
++	}
++}
++
+ // If the ro.product.[brand|device|manufacturer|model|name] properties have not been explicitly
+ // set, derive them from ro.product.${partition}.* properties
+ static void property_initialize_ro_product_props() {
+@@ -1150,6 +1194,9 @@ void PropertyLoadBootDefaults() {
+ 
+     update_sys_usb_config();
+ 
++    // Workaround SafetyNet
++    workaround_snet_properties();
++
+     // Restore the normal property override security after init extension is executed
+     weaken_prop_override_security = false;
+ }
+-- 
+2.39.0
+
+
+From fc3f142b60729b255983258db54da892bbe5f035 Mon Sep 17 00:00:00 2001
+From: Chris Renshaw <osm0sis@outlook.com>
+Date: Sat, 9 May 2020 06:53:32 -0300
+Subject: [PATCH 3/9] init: add vendor.*  keys to spoof safetynet
+
+aswinas@pixysos: add some more props from magisk hide to userspace hack by arter97
+
+Change-Id: Ib6ad1df4582a2f8333b0cbf650e79e947f6576d0
+---
+ init/property_service.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/init/property_service.cpp b/init/property_service.cpp
+index 1cf275452..91e153690 100644
+--- a/init/property_service.cpp
++++ b/init/property_service.cpp
+@@ -812,6 +812,10 @@ static const char *snet_prop_key[] = {
+ 	"ro.build.keys",
+ 	"ro.build.tags",
+ 	"ro.system.build.tags",
++	"ro.vendor.boot.warranty_bit",
++	"ro.vendor.warranty_bit",
++	"vendor.boot.vbmeta.device_state",
++	"vendor.boot.verifiedbootstate",
+ 	NULL
+ };
+ 
+@@ -829,6 +833,10 @@ static const char *snet_prop_value[] = {
+ 	"release-keys", // ro.build.keys
+ 	"release-keys", // ro.build.tags
+ 	"release-keys", // ro.system.build.tags
++	"0", // ro.vendor.boot.warranty_bit
++	"0", // ro.vendor.warranty_bit
++	"locked", // vendor.boot.vbmeta.device_state
++	"green", // vendor.boot.verifiedbootstate
+ 	NULL
+ };
+ 
+-- 
+2.39.0
+
+
+From 5cd8d217e402bb695a9ea7c378a81fac91e07ece Mon Sep 17 00:00:00 2001
+From: jhenrique09 <jhenrique09.mcz@hotmail.com>
+Date: Fri, 20 Nov 2020 11:34:54 -0300
+Subject: [PATCH 4/9] init: Weaken property override security only when
+ spoofing safetynet
+
+Change-Id: I1664b3b3fa0fc87bda683d53a56645f6d974ce01
+---
+ init/property_service.cpp | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/init/property_service.cpp b/init/property_service.cpp
+index 91e153690..29b1bf8f9 100644
+--- a/init/property_service.cpp
++++ b/init/property_service.cpp
+@@ -841,6 +841,9 @@ static const char *snet_prop_value[] = {
+ };
+ 
+ static void workaround_snet_properties() {
++    // Weaken property override security to set safetynet props
++    weaken_prop_override_security = true;
++
+ 	std::string error;
+ 	LOG(INFO) << "snet: Hiding sensitive props";
+ 
+@@ -848,6 +851,9 @@ static void workaround_snet_properties() {
+ 	for (int i = 0; snet_prop_key[i]; ++i) {
+ 		PropertySet(snet_prop_key[i], snet_prop_value[i], &error);
+ 	}
++
++    // Restore the normal property override security after safetynet props have been set
++    weaken_prop_override_security = false;
+ }
+ 
+ // If the ro.product.[brand|device|manufacturer|model|name] properties have not been explicitly
+@@ -1187,9 +1193,6 @@ void PropertyLoadBootDefaults() {
+         }
+     }
+ 
+-    // Weaken property override security during execution of the vendor init extension
+-    weaken_prop_override_security = true;
+-
+     // Update with vendor-specific property runtime overrides
+     vendor_load_properties();
+ 
+@@ -1204,9 +1207,6 @@ void PropertyLoadBootDefaults() {
+ 
+     // Workaround SafetyNet
+     workaround_snet_properties();
+-
+-    // Restore the normal property override security after init extension is executed
+-    weaken_prop_override_security = false;
+ }
+ 
+ bool LoadPropertyInfoFromFile(const std::string& filename,
+-- 
+2.39.0
+
+
+From 44bed73f95cf990e4f6e78a665f1974424955ba0 Mon Sep 17 00:00:00 2001
+From: jhenrique09 <jhenrique09.mcz@hotmail.com>
+Date: Fri, 20 Nov 2020 20:33:21 -0300
+Subject: [PATCH 5/9] init: Only set safetynet props if not eng build
+
+Change-Id: I5c675e3391cc48a95ab9186047e9e9effca95406
+---
+ init/property_service.cpp | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/init/property_service.cpp b/init/property_service.cpp
+index 29b1bf8f9..d882726c6 100644
+--- a/init/property_service.cpp
++++ b/init/property_service.cpp
+@@ -841,16 +841,20 @@ static const char *snet_prop_value[] = {
+ };
+ 
+ static void workaround_snet_properties() {
++    std::string build_type = android::base::GetProperty("ro.build.type", "");
++
+     // Weaken property override security to set safetynet props
+     weaken_prop_override_security = true;
+ 
+ 	std::string error;
+-	LOG(INFO) << "snet: Hiding sensitive props";
+ 
+-	// Hide all sensitive props
+-	for (int i = 0; snet_prop_key[i]; ++i) {
+-		PropertySet(snet_prop_key[i], snet_prop_value[i], &error);
+-	}
++	// Hide all sensitive props if not eng build
++    if (build_type != "eng") {
++	    LOG(INFO) << "snet: Hiding sensitive props";
++	    for (int i = 0; snet_prop_key[i]; ++i) {
++            PropertySet(snet_prop_key[i], snet_prop_value[i], &error);
++	    }
++    }
+ 
+     // Restore the normal property override security after safetynet props have been set
+     weaken_prop_override_security = false;
+-- 
+2.39.0
+
+
+From 9b4f60f97c6d66a559e88a9b0979595c6b75532e Mon Sep 17 00:00:00 2001
+From: jhenrique09 <jhsv09@gmail.com>
+Date: Sat, 19 Mar 2022 19:40:40 +0000
+Subject: [PATCH 6/9] core: Add more props for snet spoofing
+
+Also reformat code
+
+Change-Id: I4c0bcb61fea5a7b051c3a770d34a3a09f17db1c4
+---
+ init/property_service.cpp | 98 +++++++++++++++++++++++----------------
+ 1 file changed, 57 insertions(+), 41 deletions(-)
+
+diff --git a/init/property_service.cpp b/init/property_service.cpp
+index d882726c6..21946fd4c 100644
+--- a/init/property_service.cpp
++++ b/init/property_service.cpp
+@@ -799,45 +799,55 @@ static void load_override_properties() {
+ }
+ 
+ static const char *snet_prop_key[] = {
+-	"ro.boot.vbmeta.device_state",
+-	"ro.boot.verifiedbootstate",
+-	"ro.boot.flash.locked",
+-	"ro.boot.selinux",
+-	"ro.boot.veritymode",
+-	"ro.boot.warranty_bit",
+-	"ro.warranty_bit",
+-	"ro.debuggable",
+-	"ro.secure",
+-	"ro.build.type",
+-	"ro.build.keys",
+-	"ro.build.tags",
+-	"ro.system.build.tags",
+-	"ro.vendor.boot.warranty_bit",
+-	"ro.vendor.warranty_bit",
+-	"vendor.boot.vbmeta.device_state",
+-	"vendor.boot.verifiedbootstate",
+-	NULL
++    "ro.boot.vbmeta.device_state",
++    "ro.boot.verifiedbootstate",
++    "ro.boot.flash.locked",
++    "ro.boot.selinux",
++    "ro.boot.veritymode",
++    "ro.boot.warranty_bit",
++    "ro.warranty_bit",
++    "ro.debuggable",
++    "ro.secure",
++    "ro.build.type",
++    "ro.system.build.type",
++    "ro.system_ext.build.type",
++    "ro.vendor.build.type",
++    "ro.product.build.type",
++    "ro.odm.build.type",
++    "ro.build.keys",
++    "ro.build.tags",
++    "ro.system.build.tags",
++    "ro.vendor.boot.warranty_bit",
++    "ro.vendor.warranty_bit",
++    "vendor.boot.vbmeta.device_state",
++    "vendor.boot.verifiedbootstate",
++    NULL
+ };
+ 
+ static const char *snet_prop_value[] = {
+-	"locked", // ro.boot.vbmeta.device_state
+-	"green", // ro.boot.verifiedbootstate
+-	"1", // ro.boot.flash.locked
+-	"enforcing", // ro.boot.selinux
+-	"enforcing", // ro.boot.veritymode
+-	"0", // ro.boot.warranty_bit
+-	"0", // ro.warranty_bit
+-	"0", // ro.debuggable
+-	"1", // ro.secure
+-	"user", // ro.build.type
+-	"release-keys", // ro.build.keys
+-	"release-keys", // ro.build.tags
+-	"release-keys", // ro.system.build.tags
+-	"0", // ro.vendor.boot.warranty_bit
+-	"0", // ro.vendor.warranty_bit
+-	"locked", // vendor.boot.vbmeta.device_state
+-	"green", // vendor.boot.verifiedbootstate
+-	NULL
++    "locked", // ro.boot.vbmeta.device_state
++    "green", // ro.boot.verifiedbootstate
++    "1", // ro.boot.flash.locked
++    "enforcing", // ro.boot.selinux
++    "enforcing", // ro.boot.veritymode
++    "0", // ro.boot.warranty_bit
++    "0", // ro.warranty_bit
++    "0", // ro.debuggable
++    "1", // ro.secure
++    "user", // ro.build.type
++    "user", // ro.system.build.type
++    "user", // ro.system_ext.build.type
++    "user", // ro.vendor.build.type
++    "user", // ro.product.build.type
++    "user", // ro.odm.build.type
++    "release-keys", // ro.build.keys
++    "release-keys", // ro.build.tags
++    "release-keys", // ro.system.build.tags
++    "0", // ro.vendor.boot.warranty_bit
++    "0", // ro.vendor.warranty_bit
++    "locked", // vendor.boot.vbmeta.device_state
++    "green", // vendor.boot.verifiedbootstate
++    NULL
+ };
+ 
+ static void workaround_snet_properties() {
+@@ -846,16 +856,22 @@ static void workaround_snet_properties() {
+     // Weaken property override security to set safetynet props
+     weaken_prop_override_security = true;
+ 
+-	std::string error;
++    std::string error;
+ 
+-	// Hide all sensitive props if not eng build
++    // Hide all sensitive props if not eng build
+     if (build_type != "eng") {
+-	    LOG(INFO) << "snet: Hiding sensitive props";
+-	    for (int i = 0; snet_prop_key[i]; ++i) {
++        LOG(INFO) << "snet: Hiding sensitive props";
++        for (int i = 0; snet_prop_key[i]; ++i) {
+             PropertySet(snet_prop_key[i], snet_prop_value[i], &error);
+-	    }
++        }
+     }
+ 
++    // Extra pops
++    std::string build_flavor_key = "ro.build.flavor";
++    std::string build_flavor_value = android::base::GetProperty(build_flavor_key, "");
++    build_flavor_value = android::base::StringReplace(build_flavor_value, "userdebug", "user", false);
++    PropertySet(build_flavor_key, build_flavor_value, &error);
++
+     // Restore the normal property override security after safetynet props have been set
+     weaken_prop_override_security = false;
+ }
+-- 
+2.39.0
+
+
+From 105081758979bb1833600e33394405250681960a Mon Sep 17 00:00:00 2001
+From: Danny Lin <danny@kdrag0n.dev>
+Date: Wed, 7 Oct 2020 00:24:54 -0700
+Subject: [PATCH 7/9] init: Check for fastbootd before spoofing safetynet props
+
+The real prop values must be retained in recovery/fastbootd in
+order for fastbootd to allow/deny flashing correctly based on the
+bootloader lock state. This is accomplished by checking androidboot keys
+in the kernel cmdline and bootconfig (necessary on Pixel 6), and not
+spoofing anything if the boot isn't a normal full-blown Android boot.
+
+@jhenrique09 - Adapt to PE
+
+Change-Id: I8795b16a90eea4e5a03f64a7a56478f01144256b
+---
+ init/property_service.cpp | 38 ++++++++++++++++++++++++++++++++------
+ 1 file changed, 32 insertions(+), 6 deletions(-)
+
+diff --git a/init/property_service.cpp b/init/property_service.cpp
+index 21946fd4c..b2170ee2d 100644
+--- a/init/property_service.cpp
++++ b/init/property_service.cpp
+@@ -798,6 +798,8 @@ static void load_override_properties() {
+     }
+ }
+ 
++constexpr auto ANDROIDBOOT_MODE = "androidboot.mode"sv;
++
+ static const char *snet_prop_key[] = {
+     "ro.boot.vbmeta.device_state",
+     "ro.boot.verifiedbootstate",
+@@ -853,17 +855,41 @@ static const char *snet_prop_value[] = {
+ static void workaround_snet_properties() {
+     std::string build_type = android::base::GetProperty("ro.build.type", "");
+ 
++    // Check whether this is a normal boot, and whether the bootloader is actually locked
++    auto isNormalBoot = true; // no prop = normal boot
++    // This runs before keys are set as props, so we need to process them ourselves.
++    ImportKernelCmdline([&](const std::string& key, const std::string& value) {
++        if (key == ANDROIDBOOT_MODE && value != "normal") {
++            isNormalBoot = false;
++        }
++    });
++    ImportBootconfig([&](const std::string& key, const std::string& value) {
++        if (key == ANDROIDBOOT_MODE && value != "normal") {
++            isNormalBoot = false;
++        }
++    });
++
++    // Bail out if this is recovery, fastbootd, or anything other than a normal boot.
++    // fastbootd, in particular, needs the real values so it can allow flashing on
++    // unlocked bootloaders.
++    if (!isNormalBoot) {
++        return;
++    }
++
++    // Exit if eng build
++    if (build_type == "eng") {
++        return;
++    }
++
+     // Weaken property override security to set safetynet props
+     weaken_prop_override_security = true;
+ 
+     std::string error;
+ 
+-    // Hide all sensitive props if not eng build
+-    if (build_type != "eng") {
+-        LOG(INFO) << "snet: Hiding sensitive props";
+-        for (int i = 0; snet_prop_key[i]; ++i) {
+-            PropertySet(snet_prop_key[i], snet_prop_value[i], &error);
+-        }
++    // Hide all sensitive props 
++    LOG(INFO) << "snet: Hiding sensitive props";
++    for (int i = 0; snet_prop_key[i]; ++i) {
++        PropertySet(snet_prop_key[i], snet_prop_value[i], &error);
+     }
+ 
+     // Extra pops
+-- 
+2.39.0
+
+
+From b2594f2fc243116b0281b3618faf86b02ccbc983 Mon Sep 17 00:00:00 2001
+From: Jarl-Penguin <jarlpenguin@outlook.com>
+Date: Wed, 16 Jun 2021 11:28:46 +0000
+Subject: [PATCH 8/9] core: Don't spoof props in recovery mode
+
+Signed-off-by: Jarl-Penguin <jarlpenguin@outlook.com>
+Change-Id: Ic3fbabc38fda59a21963b02621baa4328747d738
+---
+ init/property_service.cpp | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/init/property_service.cpp b/init/property_service.cpp
+index b2170ee2d..b90defced 100644
+--- a/init/property_service.cpp
++++ b/init/property_service.cpp
+@@ -872,7 +872,7 @@ static void workaround_snet_properties() {
+     // Bail out if this is recovery, fastbootd, or anything other than a normal boot.
+     // fastbootd, in particular, needs the real values so it can allow flashing on
+     // unlocked bootloaders.
+-    if (!isNormalBoot) {
++    if (!isNormalBoot || IsRecoveryMode()) {
+         return;
+     }
+ 
+@@ -1252,7 +1252,9 @@ void PropertyLoadBootDefaults() {
+     update_sys_usb_config();
+ 
+     // Workaround SafetyNet
+-    workaround_snet_properties();
++    if (!IsRecoveryMode()) {
++        workaround_snet_properties();
++    }
+ }
+ 
+ bool LoadPropertyInfoFromFile(const std::string& filename,
+-- 
+2.39.0
+
+
+From cbefde50390ed31c856da1fd914712da314317dc Mon Sep 17 00:00:00 2001
+From: jhenrique09 <jhsv09@gmail.com>
+Date: Tue, 23 Aug 2022 17:11:54 -0300
+Subject: [PATCH 9/9] init: Spoof more props
+
+Change-Id: Ic0ddbd6a0dd40c877248f7864082eddab2b32366
+---
+ init/property_service.cpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/init/property_service.cpp b/init/property_service.cpp
+index b90defced..25fec1ce6 100644
+--- a/init/property_service.cpp
++++ b/init/property_service.cpp
+@@ -810,10 +810,12 @@ static const char *snet_prop_key[] = {
+     "ro.warranty_bit",
+     "ro.debuggable",
+     "ro.secure",
++    "ro.bootimage.build.type",
+     "ro.build.type",
+     "ro.system.build.type",
+     "ro.system_ext.build.type",
+     "ro.vendor.build.type",
++    "ro.vendor_dlkm.build.type",
+     "ro.product.build.type",
+     "ro.odm.build.type",
+     "ro.build.keys",
+@@ -836,10 +838,12 @@ static const char *snet_prop_value[] = {
+     "0", // ro.warranty_bit
+     "0", // ro.debuggable
+     "1", // ro.secure
++    "user", // ro.bootimage.build.type
+     "user", // ro.build.type
+     "user", // ro.system.build.type
+     "user", // ro.system_ext.build.type
+     "user", // ro.vendor.build.type
++    "user", // ro.vendor_dlkm.build.type
+     "user", // ro.product.build.type
+     "user", // ro.odm.build.type
+     "release-keys", // ro.build.keys
+-- 
+2.39.0
+
