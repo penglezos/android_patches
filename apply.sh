@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2022-2023 penglezos <panagiotisegl@gmail.com>
 #
-# Apply Android patches 
+# Remove or apply Android patches
 #
 
 echo $1
