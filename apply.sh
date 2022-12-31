@@ -10,7 +10,7 @@ rootdirectory="$PWD"
 
 dirs="frameworks/base packages/apps packages/modules lineage-sdk system/core"
 
-echo -e "\n1.Remove all patches\n2.Pick all patches"
+echo -e "\n1.Remove all patches\n2.Apply all patches"
 read -p "Your choice: " num
 case $num in 
     1|2|3|4)
