@@ -20,7 +20,7 @@ if [ $num = '1' ]; then
     for dir in $dirs ; do
 	cd $rootdirectory
 	cd $dir
-	echo "Cleaning $dir patches..."
+	echo "Removing $dir patches..."
 	git reset --hard
 	git clean -f -d
 done
