@@ -11,6 +11,7 @@ rootdirectory="$PWD"
 dirs="frameworks/base packages/apps packages/modules lineage-sdk system/core"
 
 for dir in $dirs ; do
+	cd $rootdirectory
 	cd $dir
 	echo "Applying $dir patches..."
 	git am $rootdirectory/patches/$dir/*.patch
