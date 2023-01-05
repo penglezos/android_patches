@@ -1,9 +1,9 @@
-From a5219687b1f1143628d9998825f243798b2e61ae Mon Sep 17 00:00:00 2001
-From: penglezos <panagiotisegl@gmail.com>
-Date: Fri, 23 Dec 2022 18:19:05 +0200
-Subject: [PATCH 1/2] [SQUASH] Import PixelPropsUtils
+From a6cb0b932d1cc5169a08b04a0528bf52a4043d0b Mon Sep 17 00:00:00 2001
+From: jhenrique09 <jhsv09@gmail.com>
+Date: Mon, 22 Aug 2022 21:40:25 -0300
+Subject: [PATCH] [SQUASH]Import PixelPropsUtils
 
-Thanks to @kdrag0n for the original idea at ProtonAOSP/android_frameworks_base@5a54bfd
+Thanks to @kdrag0n for the original idea at https://github.com/ProtonAOSP/android_frameworks_base/commit/5a54bfd846c7a26ba4820a361a6fec779edf8c5a
 
 Also includes:
 
@@ -161,7 +161,7 @@ PixelPropsUtils: Extend list of packages to keep
 
 * It's better to not touch props for these packages at all,
   instead running loop over it.
-* Ref: AOSPA/android_frameworks_base@dc2940c
+* Ref: https://github.com/AOSPA/android_frameworks_base/commit/dc2940c18ce0acbc5a90f22361d1bb7a6a4783d3
 
 Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
 Change-Id: Ica5aee62c38ae46c5003a1d35ba6bdc9f865b2ef
@@ -212,7 +212,7 @@ Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
 
 PixelPropsUtils: Spoof Nexus 6P for GMS unstable process
 
-To fix Play Integrity, taken from kdrag0n/safetynet-fix#207
+To fix Play Integrity, taken from https://github.com/kdrag0n/safetynet-fix/pull/207
 
 Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
 
@@ -265,12 +265,37 @@ Change-Id: Id5bb90f2c563a6b734c09a33db7b4e4e9b612029
 PixelPropsUtils: Press F for flame and coral
 
 Change-Id: Icba703edb590586874628d672b33f5a20f7e85d3
+
+PixelPropsUtils: Update from december
+
+Change-Id: I4bd9525fd634b9f7e0535f31c2762a17f0814c56
+
+PixelPropsUtils: spoof nothing smartcenter to pixel
+
+* after the update to 2.0.2 , its checking for NTExperince on phone 1 (Spacewar) as the custom rom's lacking it just crashes so workaround this by spoofing it
+
+TEST: app opens and successfully connect to ear (1)
+Change-Id: Iad9cf39bb8e55e4c22ff237d8e2ee5160dcea4e1
+Signed-off-by: aswin7469 <aswinas@pixysos.com>
+
+PixelPropsUtils: Use redfin props for extra packages
+
+Change-Id: If51bba2e21c722301e57a85bad8387479fb83574
+(cherry picked from commit 8a6da0b93664cfea9e30000bb38bf987f321be89)
+
+PixelPropsUtils: Update fingerprint from January
+
+Change-Id: I59e371eb601e04e4e59529dd38e59780b8ccd394
+
+PixelPropsUtils: Adapt device string
+
+Change-Id: I906efb3dcb23ef8d1dc73bd8efdd4d72819612f6
 Signed-off-by: penglezos <panagiotisegl@gmail.com>
 ---
  core/java/android/app/Instrumentation.java    |   6 +
- .../internal/util/custom/PixelPropsUtils.java | 214 ++++++++++++++++++
+ .../internal/util/custom/PixelPropsUtils.java | 213 ++++++++++++++++++
  .../keystore2/AndroidKeyStoreSpi.java         |   4 +
- 3 files changed, 224 insertions(+)
+ 3 files changed, 223 insertions(+)
  create mode 100644 core/java/com/android/internal/util/custom/PixelPropsUtils.java
 
 diff --git a/core/java/android/app/Instrumentation.java b/core/java/android/app/Instrumentation.java
@@ -306,10 +331,10 @@ index 556058b567f9..f9c9f0d77fe0 100644
  
 diff --git a/core/java/com/android/internal/util/custom/PixelPropsUtils.java b/core/java/com/android/internal/util/custom/PixelPropsUtils.java
 new file mode 100644
-index 000000000000..f7e6fcdf3d56
+index 000000000000..8789a81def1d
 --- /dev/null
 +++ b/core/java/com/android/internal/util/custom/PixelPropsUtils.java
-@@ -0,0 +1,214 @@
+@@ -0,0 +1,213 @@
 +/*
 + * Copyright (C) 2022 The Pixel Experience Project
 + *               2021-2022 crDroid Android Project
@@ -369,7 +394,8 @@ index 000000000000..f7e6fcdf3d56
 +    private static final String[] extraPackagesToChange = {
 +            "com.android.chrome",
 +            "com.android.vending",
-+            "com.breel.wallpapers20"
++            "com.breel.wallpapers20",
++            "com.nothing.smartcenter"
 +    };
 +
 +    private static final String[] packagesToKeep = {
@@ -421,14 +447,14 @@ index 000000000000..f7e6fcdf3d56
 +        propsToChangePixel7Pro.put("DEVICE", "cheetah");
 +        propsToChangePixel7Pro.put("PRODUCT", "cheetah");
 +        propsToChangePixel7Pro.put("MODEL", "Pixel 7 Pro");
-+        propsToChangePixel7Pro.put("FINGERPRINT", "google/cheetah/cheetah:13/TQ1A.221205.011/9244662:user/release-keys");
++        propsToChangePixel7Pro.put("FINGERPRINT", "google/cheetah/cheetah:13/TQ1A.230105.002/9325679:user/release-keys");
 +        propsToChangePixel5 = new HashMap<>();
 +        propsToChangePixel5.put("BRAND", "google");
 +        propsToChangePixel5.put("MANUFACTURER", "Google");
 +        propsToChangePixel5.put("DEVICE", "redfin");
 +        propsToChangePixel5.put("PRODUCT", "redfin");
 +        propsToChangePixel5.put("MODEL", "Pixel 5");
-+        propsToChangePixel5.put("FINGERPRINT", "google/redfin/redfin:13/TQ1A.221205.011/9244662:user/release-keys");
++        propsToChangePixel5.put("FINGERPRINT", "google/redfin/redfin:13/TQ1A.230105.001/9292298:user/release-keys");
 +        propsToChangePixelXL = new HashMap<>();
 +        propsToChangePixelXL.put("BRAND", "google");
 +        propsToChangePixelXL.put("MANUFACTURER", "Google");
@@ -457,9 +483,7 @@ index 000000000000..f7e6fcdf3d56
 +                sIsFinsky = true;
 +                return;
 +            } else if (!isPixelDevice) {
-+                if ((Arrays.asList(packagesToChangePixel7Pro).contains(packageName))
-+                        || packageName.startsWith(SAMSUNG)
-+                        || Arrays.asList(extraPackagesToChange).contains(packageName)) {
++                if ((Arrays.asList(packagesToChangePixel7Pro).contains(packageName))) {
 +                    propsToChange.putAll(propsToChangePixel7Pro);
 +                } else if (Arrays.asList(packagesToChangePixelXL).contains(packageName)) {
 +                    propsToChange.putAll(propsToChangePixelXL);
