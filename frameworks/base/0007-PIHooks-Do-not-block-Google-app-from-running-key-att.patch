@@ -1,0 +1,30 @@
+From ed1048dda50aeb167665183864186919c3b7f184 Mon Sep 17 00:00:00 2001
+From: Gagan Malvi <malvigagan@gmail.com>
+Date: Sat, 15 Oct 2022 18:03:56 +0200
+Subject: [PATCH 4/6] PIHooks: Do not block Google app from running key
+ attestation.
+
+Signed-off-by: Gagan Malvi <malvigagan@gmail.com>
+Change-Id: I0785b7bb6d0d33cc65762cca4ee78f95da1b91dc
+---
+ core/java/com/android/internal/util/PropImitationHooks.java | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/core/java/com/android/internal/util/PropImitationHooks.java b/core/java/com/android/internal/util/PropImitationHooks.java
+index 056e4afc4a42..69ca0f1fd4b9 100644
+--- a/core/java/com/android/internal/util/PropImitationHooks.java
++++ b/core/java/com/android/internal/util/PropImitationHooks.java
+@@ -99,8 +99,8 @@ public class PropImitationHooks {
+ 
+     public static void onEngineGetCertificateChain() {
+         // Check stack for SafetyNet or Play Integrity
+-        if (isCallerSafetyNet() || sIsFinsky || sIsVelvet) {
+-            dlog("Blocked key attestation sIsGms=" + sIsGms + " sIsFinsky=" + sIsFinsky + " sIsVelvet=" + sIsVelvet);
++        if (isCallerSafetyNet() || sIsFinsky) {
++            dlog("Blocked key attestation sIsGms=" + sIsGms + " sIsFinsky=" + sIsFinsky);
+             throw new UnsupportedOperationException();
+         }
+     }
+-- 
+2.39.1
+

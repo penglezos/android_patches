@@ -1,0 +1,105 @@
+From dc766167fe956a4b37dfd794a433796a4ac665e1 Mon Sep 17 00:00:00 2001
+From: Jake Weinstein <jake@aospa.co>
+Date: Mon, 19 Sep 2022 03:23:38 +0900
+Subject: [PATCH 2/6] PropImitationHooks: Spoof Pixel properties on Google app
+
+This exposes other widgets and functionality that
+are not otherwise available, particularly
+the weather widget.
+
+Change-Id: I0b32cc5bb3e90ddf6997cd447843244a87f2fc4f
+Signed-off-by: penglezos <panagiotisegl@gmail.com>
+---
+ .../internal/util/PropImitationHooks.java      | 18 ++++++++++++++++--
+ core/res/res/values/custom_config.xml          |  3 +++
+ core/res/res/values/custom_symbols.xml         |  3 +++
+ 3 files changed, 22 insertions(+), 2 deletions(-)
+
+diff --git a/core/java/com/android/internal/util/PropImitationHooks.java b/core/java/com/android/internal/util/PropImitationHooks.java
+index cecca63b4b83..efb55d3c1071 100644
+--- a/core/java/com/android/internal/util/PropImitationHooks.java
++++ b/core/java/com/android/internal/util/PropImitationHooks.java
+@@ -34,16 +34,21 @@ public class PropImitationHooks {
+     private static final String sCertifiedFp =
+             Resources.getSystem().getString(R.string.config_certifiedFingerprint);
+ 
++    private static final String sCertifiedModel =
++            Resources.getSystem().getString(R.string.config_certifiedModel);
++
+     private static final String sStockFp =
+             Resources.getSystem().getString(R.string.config_stockFingerprint);
+ 
+     private static final String PACKAGE_ARCORE = "com.google.ar.core";
+     private static final String PACKAGE_FINSKY = "com.android.vending";
++    private static final String PACKAGE_VELVET = "com.google.android.googlequicksearchbox";
+     private static final String PACKAGE_GMS = "com.google.android.gms";
+     private static final String PROCESS_GMS_UNSTABLE = PACKAGE_GMS + ".unstable";
+ 
+     private static volatile boolean sIsGms = false;
+     private static volatile boolean sIsFinsky = false;
++    private static volatile boolean sIsVelvet = false;
+ 
+     public static void setProps(Application app) {
+         final String packageName = app.getPackageName();
+@@ -55,10 +60,19 @@ public class PropImitationHooks {
+ 
+         sIsGms = packageName.equals(PACKAGE_GMS) && processName.equals(PROCESS_GMS_UNSTABLE);
+         sIsFinsky = packageName.equals(PACKAGE_FINSKY);
++        sIsVelvet = packageName.equals(PACKAGE_VELVET);
+ 
++        /* Set Certified Fingerprint for GMSCore or Finsky
++         * Set Certified Fingerprint and Model for Velvet
++         * Set Stock Fingerprint for ARCore
++         */
+         if (!sCertifiedFp.isEmpty() && (sIsGms || sIsFinsky)) {
+             dlog("Setting certified fingerprint for: " + packageName);
+             setPropValue("FINGERPRINT", sCertifiedFp);
++        } else if (!sCertifiedFp.isEmpty() && (sIsVelvet)) {
++            dlog("Setting certified fingerprint and model for: " + packageName);
++            setPropValue("FINGERPRINT", sCertifiedFp);
++            setPropValue("MODEL", sCertifiedModel);
+         } else if (!sStockFp.isEmpty() && packageName.equals(PACKAGE_ARCORE)) {
+             dlog("Setting stock fingerprint for: " + packageName);
+             setPropValue("FINGERPRINT", sStockFp);
+@@ -84,8 +98,8 @@ public class PropImitationHooks {
+ 
+     public static void onEngineGetCertificateChain() {
+         // Check stack for SafetyNet or Play Integrity
+-        if (isCallerSafetyNet() || sIsFinsky) {
+-            dlog("Blocked key attestation sIsGms=" + sIsGms + " sIsFinsky=" + sIsFinsky);
++        if (isCallerSafetyNet() || sIsFinsky || sIsVelvet) {
++            dlog("Blocked key attestation sIsGms=" + sIsGms + " sIsFinsky=" + sIsFinsky + " sIsVelvet=" + sIsVelvet);
+             throw new UnsupportedOperationException();
+         }
+     }
+diff --git a/core/res/res/values/custom_config.xml b/core/res/res/values/custom_config.xml
+index 70b7fa082814..37ead82a434e 100644
+--- a/core/res/res/values/custom_config.xml
++++ b/core/res/res/values/custom_config.xml
+@@ -3,6 +3,9 @@
+     <!-- Fingerprint from a certified device against current platform SPL level -->
+     <string name="config_certifiedFingerprint" translatable="false"></string>
+ 
++    <!-- Fingerprint from a certified model -->
++    <string name="config_certifiedModel" translatable="false"></string>
++
+     <!-- Fingerprint from stock ROM -->
+     <string name="config_stockFingerprint" translatable="false"></string>
+ 
+diff --git a/core/res/res/values/custom_symbols.xml b/core/res/res/values/custom_symbols.xml
+index 3bb4834c99f4..c382644fc850 100644
+--- a/core/res/res/values/custom_symbols.xml
++++ b/core/res/res/values/custom_symbols.xml
+@@ -3,6 +3,9 @@
+     <!-- Fingerprint from a certified device against current platform SPL level -->
+     <java-symbol type="string" name="config_certifiedFingerprint" />
+ 
++    <!-- Fingerprint from a certified model -->
++    <java-symbol type="string" name="config_certifiedModel" />
++
+     <!-- Fingerprint from stock ROM -->
+     <java-symbol type="string" name="config_stockFingerprint" />
+ </resources>
+-- 
+2.39.1
+
