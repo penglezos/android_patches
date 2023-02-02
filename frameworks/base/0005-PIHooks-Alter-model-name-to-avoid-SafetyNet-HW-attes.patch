@@ -1,7 +1,7 @@
-From 8424497d876868c310a98bef7f6f0762685c16fc Mon Sep 17 00:00:00 2001
+From 7beec50726ea499058a729b368967142becd91d8 Mon Sep 17 00:00:00 2001
 From: Danny Lin <danny@kdrag0n.dev>
 Date: Fri, 14 Oct 2022 09:53:12 +0200
-Subject: [PATCH 3/6] PIHooks: Alter model name to avoid SafetyNet HW
+Subject: [PATCH 2/3] PIHooks: Alter model name to avoid SafetyNet HW
  attestation
 
 As of September 2, Google is enforcing SafetyNet's previously
@@ -13,26 +13,29 @@ Change-Id: Ib7779e0aae40cab3730a56785e9231896917ab0a
 [ghostrider-reborn: adapt to PIHooks, use invisible space]
 Signed-off-by: Adithya R <gh0strider.2k18.reborn@gmail.com>
 ---
- core/java/com/android/internal/util/PropImitationHooks.java | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ .../com/android/internal/util/PropImitationHooks.java     | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/core/java/com/android/internal/util/PropImitationHooks.java b/core/java/com/android/internal/util/PropImitationHooks.java
-index efb55d3c1071..056e4afc4a42 100644
+index cecca63b4b83..7799d51171c2 100644
 --- a/core/java/com/android/internal/util/PropImitationHooks.java
 +++ b/core/java/com/android/internal/util/PropImitationHooks.java
-@@ -66,9 +66,10 @@ public class PropImitationHooks {
-          * Set Certified Fingerprint and Model for Velvet
-          * Set Stock Fingerprint for ARCore
-          */
+@@ -56,9 +56,13 @@ public class PropImitationHooks {
+         sIsGms = packageName.equals(PACKAGE_GMS) && processName.equals(PROCESS_GMS_UNSTABLE);
+         sIsFinsky = packageName.equals(PACKAGE_FINSKY);
+ 
 -        if (!sCertifiedFp.isEmpty() && (sIsGms || sIsFinsky)) {
 -            dlog("Setting certified fingerprint for: " + packageName);
++        /* Set Certified Fingerprint for GMSCore or Finsky
++         * Set Stock Fingerprint for ARCore
++         */
 +        if (!sCertifiedFp.isEmpty() && sIsGms) {
-+            dlog("Spoofing buid for GMS");
++            dlog("Spoofing build for GMS");
              setPropValue("FINGERPRINT", sCertifiedFp);
 +            setPropValue("MODEL", Build.MODEL + "\u200b");
-         } else if (!sCertifiedFp.isEmpty() && (sIsVelvet)) {
-             dlog("Setting certified fingerprint and model for: " + packageName);
-             setPropValue("FINGERPRINT", sCertifiedFp);
+         } else if (!sStockFp.isEmpty() && packageName.equals(PACKAGE_ARCORE)) {
+             dlog("Setting stock fingerprint for: " + packageName);
+             setPropValue("FINGERPRINT", sStockFp);
 -- 
 2.39.1
 

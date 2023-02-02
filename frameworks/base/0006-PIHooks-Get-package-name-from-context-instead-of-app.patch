@@ -1,7 +1,7 @@
-From 6f2f6adfc442067833cef0e3391be3d77d9d122c Mon Sep 17 00:00:00 2001
+From 433bff7dea48ea89cd17122e9497235117601703 Mon Sep 17 00:00:00 2001
 From: jhenrique09 <jhsv09@gmail.com>
 Date: Fri, 4 Nov 2022 15:40:04 -0300
-Subject: [PATCH] PIHooks: Get package name from context instead of app
+Subject: [PATCH 3/3] PIHooks: Get package name from context instead of app
 
 11-04 08:48:39.039 11637 11637 E AndroidRuntime: FATAL EXCEPTION: main
 11-04 08:48:39.039 11637 11637 E AndroidRuntime: Process: com.NextFloor.DestinyChild, PID: 11637
@@ -13,9 +13,9 @@ Change-Id: Icb12f938fe0fca710f8f9d29182d0134ba3c63eb
 Signed-off-by: Adithya R <gh0strider.2k18.reborn@gmail.com>
 Signed-off-by: penglezos <panagiotisegl@gmail.com>
 ---
- core/java/android/app/Instrumentation.java             |  4 ++--
- .../com/android/internal/util/PropImitationHooks.java  | 10 ++++++----
- 2 files changed, 8 insertions(+), 6 deletions(-)
+ core/java/android/app/Instrumentation.java            |  4 ++--
+ .../com/android/internal/util/PropImitationHooks.java | 11 +++++++----
+ 2 files changed, 9 insertions(+), 6 deletions(-)
 
 diff --git a/core/java/android/app/Instrumentation.java b/core/java/android/app/Instrumentation.java
 index 221e34f1df8c..e17d6805700a 100644
@@ -40,7 +40,7 @@ index 221e34f1df8c..e17d6805700a 100644
      }
  
 diff --git a/core/java/com/android/internal/util/PropImitationHooks.java b/core/java/com/android/internal/util/PropImitationHooks.java
-index 54ad67da524d..376ef74b4abd 100644
+index 7799d51171c2..8d1ef146df2b 100644
 --- a/core/java/com/android/internal/util/PropImitationHooks.java
 +++ b/core/java/com/android/internal/util/PropImitationHooks.java
 @@ -17,8 +17,10 @@
@@ -54,7 +54,7 @@ index 54ad67da524d..376ef74b4abd 100644
  import android.util.Log;
  
  import com.android.internal.R;
-@@ -45,11 +47,11 @@ public class PropImitationHooks {
+@@ -45,11 +47,12 @@ public class PropImitationHooks {
      private static volatile boolean sIsGms = false;
      private static volatile boolean sIsFinsky = false;
  
@@ -67,6 +67,7 @@ index 54ad67da524d..376ef74b4abd 100644
  
 -        if (packageName == null || processName == null) {
 +        if (TextUtils.isEmpty(packageName) || processName == null) {
++            dlog("Null package or process name");
              return;
          }
  
