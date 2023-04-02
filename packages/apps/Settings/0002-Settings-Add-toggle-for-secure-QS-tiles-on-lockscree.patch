@@ -1,20 +1,19 @@
-From 87dedd0f82e649bc44f574a19c6e1123e7ac3622 Mon Sep 17 00:00:00 2001
+From 599b509de806e8d259d5646e55430875115971fd Mon Sep 17 00:00:00 2001
 From: penglezos <panagiotisegl@gmail.com>
-Date: Mon, 21 Nov 2022 11:41:19 +0200
+Date: Tue, 21 Mar 2023 19:01:23 +0200
 Subject: [PATCH 2/2] Settings: Add toggle for secure QS tiles on lockscreen
 
-Change-Id: I2d3e3d6fa20ceba7bc9c354495f94500fa61b7d4
 Signed-off-by: penglezos <panagiotisegl@gmail.com>
 ---
  res/values/cm_strings.xml        | 4 ++++
- res/xml/screen_lock_settings.xml | 5 +++++
- 2 files changed, 9 insertions(+)
+ res/xml/screen_lock_settings.xml | 6 ++++++
+ 2 files changed, 10 insertions(+)
 
 diff --git a/res/values/cm_strings.xml b/res/values/cm_strings.xml
-index 9f4cbeebc3..b4877f7e1a 100644
+index 1b120c170a..f80bc7abc3 100644
 --- a/res/values/cm_strings.xml
 +++ b/res/values/cm_strings.xml
-@@ -191,4 +191,8 @@
+@@ -178,4 +178,8 @@
  
      <!-- Warning message for the sd card setup -->
      <string name="storage_warning_internal">Warning: This option may not work properly or lead to data loss and is therefore not recommended!</string>
@@ -24,13 +23,14 @@ index 9f4cbeebc3..b4877f7e1a 100644
 +    <string name="qstiles_requires_unlocking_summary">Unlock device to use sensitive quick settings tiles</string>
  </resources>
 diff --git a/res/xml/screen_lock_settings.xml b/res/xml/screen_lock_settings.xml
-index e31fc56bc7..cba0226046 100644
+index 7feea02afa..94865aaaaa 100644
 --- a/res/xml/screen_lock_settings.xml
 +++ b/res/xml/screen_lock_settings.xml
-@@ -61,4 +61,9 @@
-         android:summaryOn="@string/fingerprint_wake_unlock_touch"
-         android:summaryOff="@string/fingerprint_wake_unlock_press" />
+@@ -54,4 +54,10 @@
+         android:title="@string/unlock_scramble_pin_layout_title"
+         android:summary="@string/unlock_scramble_pin_layout_summary" />
  
++    <!-- QSTiles requires unlocking before being accessible -->
 +    <lineageos.preference.LineageSecureSettingSwitchPreference
 +        android:key="qs_tiles_requires_unlocking"
 +        android:title="@string/qstiles_requires_unlocking_title"
@@ -38,5 +38,5 @@ index e31fc56bc7..cba0226046 100644
 +        android:defaultValue="true"/>
  </PreferenceScreen>
 -- 
-2.38.2
+2.40.0
 

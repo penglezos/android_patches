@@ -1,12 +1,11 @@
-From 8d4ab9bc39da3047300176835b1ded2b07740074 Mon Sep 17 00:00:00 2001
+From 0aed799e98e0d7e7fad2b53d9974b7069d8e0f42 Mon Sep 17 00:00:00 2001
 From: Adithya R <gh0strider.2k18.reborn@gmail.com>
 Date: Thu, 25 Feb 2021 17:37:27 +0530
 Subject: [PATCH 1/2] Settings: Add missing icons in Network and Internet
 
- * Updated for Android 13 - add to provider model as well
+ * Updated for Android 12 - add to provider model as well
 
-Change-Id: Ie063edea690239ffd4b3e750652753e44a024996
-Signed-off-by: penglezos <panagiotisegl@gmail.com>
+Change-Id: I86e7b61c5d0e6e5f9a0394ae6fadd38a73c9527d
 ---
  res/drawable/ic_settings_mobile_plan.xml | 8 ++++++++
  res/drawable/ic_settings_private_dns.xml | 6 ++++++
@@ -63,10 +62,10 @@ index 2162c96eb8..0b92ab643f 100644
          android:dialogTitle="@string/select_private_dns_configuration_dialog_title"
          android:dialogLayout="@layout/private_dns_mode_dialog"
 diff --git a/res/xml/network_provider_internet.xml b/res/xml/network_provider_internet.xml
-index 07e797a07c..9f7ccb312d 100644
+index 981afb3b3e..c54d0cbdb6 100644
 --- a/res/xml/network_provider_internet.xml
 +++ b/res/xml/network_provider_internet.xml
-@@ -63,6 +63,7 @@
+@@ -65,6 +65,7 @@
      <com.android.settingslib.RestrictedPreference
          android:key="manage_mobile_plan"
          android:title="@string/manage_mobile_plan_title"
@@ -74,7 +73,7 @@ index 07e797a07c..9f7ccb312d 100644
          android:persistent="false"
          android:order="19"
          settings:userRestriction="no_config_mobile_networks"
-@@ -111,6 +112,7 @@
+@@ -115,6 +116,7 @@
      <com.android.settings.network.PrivateDnsModeDialogPreference
          android:key="private_dns_settings"
          android:title="@string/select_private_dns_configuration_title"
@@ -83,5 +82,5 @@ index 07e797a07c..9f7ccb312d 100644
          android:dialogTitle="@string/select_private_dns_configuration_dialog_title"
          android:dialogLayout="@layout/private_dns_mode_dialog"
 -- 
-2.38.2
+2.40.0
 
