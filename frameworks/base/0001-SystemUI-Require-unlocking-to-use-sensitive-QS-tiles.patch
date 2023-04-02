@@ -1,26 +1,19 @@
-From d18f4dec53a546807c063fc6574dfd3775508891 Mon Sep 17 00:00:00 2001
+From f9d027efeff9f15ec9d4673af79e75f8d5a7e484 Mon Sep 17 00:00:00 2001
 From: Danny Lin <danny@kdrag0n.dev>
-Date: Tue, 5 Oct 2021 21:01:09 -0700
-Subject: [PATCH 1/3] SystemUI: Require unlocking to use sensitive QS tiles
+Date: Wed, 6 Oct 2021 07:01:09 +0300
+Subject: [PATCH 1/4] SystemUI: Require unlocking to use sensitive QS tiles
 
 - Airplane mode
 - Battery saver
 - Bluetooth
 - Cellular
-- Do Not Disturb
 - DataSaver
+- Do Not Disturb
+- Internet
 - Hotspot
 - NFC
 - Wi-Fi
 - Work mode
-- Internet [1]
-
-[1]: This is includes:
-Author: flawedworld <flawedworld@flawed.world>
-Date:   Thu Dec 9 16:24:47 2021 +0000
-
-    SystemUI: Require unlocking to use Internet quick tile
---
 
 This is the same idea as the following commits from GrapheneOS, but
 simplified to reduce changes made to each individual QS tile:
@@ -55,9 +48,9 @@ Date:   Thu Sep 10 17:13:58 2020 -0700
 
     require unlocking to use data saver quick tile
 
-commit cf84259708f9bf650c8494e16025725b1bfa5e23
+commit 61eb5a6392c53e4d44cb91cdb4df27c3055ef439
 Author: inthewaves <inthewaves@pm.me>
-Date:   Thu Sep 10 17:11:58 2020 -0700
+Date:   Thu Sep 10 17:08:33 2020 -0700
 
     require unlocking to use Wi-Fi quick tile
 
@@ -79,20 +72,18 @@ Date:   Thu Sep 10 16:47:59 2020 -0700
 
     require unlocking to use NFC quick tile
 
-Change-Id: I515f4bdd30f84a4a76f4807afcf3cc5a3ce42fa9
+commit 991e4579ad329df28a6e18bb0de8a5368d91bb73
+Author: flawedworld <flawedworld@flawed.world>
+Date:   Thu Dec 9 16:24:47 2021 +0000
 
-[jhonboy121]: adapted to A13
+    SystemUI: Require unlocking to use Internet quick tile
 
-Signed-off-by: jhonboy121 <alfredmathew05@gmail.com>
-
-SystemUI: Require unlocking to use Internet quick tile
-Change-Id: I6c6969d952c4dc6fac0fa3188896ed3b9461439a
 Signed-off-by: penglezos <panagiotisegl@gmail.com>
 ---
  .../systemui/qs/tiles/AirplaneModeTile.java   | 14 +++--
  .../systemui/qs/tiles/BatterySaverTile.java   | 14 +++--
  .../systemui/qs/tiles/BluetoothTile.java      | 14 +++--
- .../systemui/qs/tiles/CellularTile.java       | 11 ++--
+ .../systemui/qs/tiles/CellularTile.java       | 10 +++-
  .../systemui/qs/tiles/DataSaverTile.java      | 14 +++--
  .../android/systemui/qs/tiles/DndTile.java    | 13 +++--
  .../systemui/qs/tiles/HotspotTile.java        | 14 +++--
@@ -101,21 +92,22 @@ Signed-off-by: penglezos <panagiotisegl@gmail.com>
  .../android/systemui/qs/tiles/SecureQSTile.kt | 58 +++++++++++++++++++
  .../android/systemui/qs/tiles/WifiTile.java   | 14 +++--
  .../systemui/qs/tiles/WorkModeTile.java       | 14 +++--
- 12 files changed, 163 insertions(+), 44 deletions(-)
+ 12 files changed, 163 insertions(+), 43 deletions(-)
  create mode 100644 packages/SystemUI/src/com/android/systemui/qs/tiles/SecureQSTile.kt
 
 diff --git a/packages/SystemUI/src/com/android/systemui/qs/tiles/AirplaneModeTile.java b/packages/SystemUI/src/com/android/systemui/qs/tiles/AirplaneModeTile.java
-index 86d4fa3002fc..efc4c1761b72 100644
+index 033dbe0f82ee..ad8d77b53882 100644
 --- a/packages/SystemUI/src/com/android/systemui/qs/tiles/AirplaneModeTile.java
 +++ b/packages/SystemUI/src/com/android/systemui/qs/tiles/AirplaneModeTile.java
-@@ -49,13 +49,14 @@ import com.android.systemui.qs.SettingObserver;
+@@ -49,6 +49,7 @@ import com.android.systemui.qs.SettingObserver;
  import com.android.systemui.qs.logging.QSLogger;
  import com.android.systemui.qs.tileimpl.QSTileImpl;
- import com.android.systemui.util.settings.GlobalSettings;
+ import com.android.systemui.settings.UserTracker;
 +import com.android.systemui.statusbar.policy.KeyguardStateController;
+ import com.android.systemui.util.settings.GlobalSettings;
  
  import javax.inject.Inject;
- 
+@@ -56,7 +57,7 @@ import javax.inject.Inject;
  import dagger.Lazy;
  
  /** Quick settings tile: Airplane mode **/
@@ -124,12 +116,12 @@ index 86d4fa3002fc..efc4c1761b72 100644
      private final SettingObserver mSetting;
      private final BroadcastDispatcher mBroadcastDispatcher;
      private final Lazy<ConnectivityManager> mLazyConnectivityManager;
-@@ -74,10 +75,11 @@ public class AirplaneModeTile extends QSTileImpl<BooleanState> {
-             QSLogger qsLogger,
+@@ -76,10 +77,11 @@ public class AirplaneModeTile extends QSTileImpl<BooleanState> {
              BroadcastDispatcher broadcastDispatcher,
              Lazy<ConnectivityManager> lazyConnectivityManager,
--            GlobalSettings globalSettings
-+            GlobalSettings globalSettings,
+             GlobalSettings globalSettings,
+-            UserTracker userTracker
++            UserTracker userTracker,
 +            KeyguardStateController keyguardStateController
      ) {
          super(host, backgroundLooper, mainHandler, falsingManager, metricsLogger,
@@ -138,7 +130,7 @@ index 86d4fa3002fc..efc4c1761b72 100644
          mBroadcastDispatcher = broadcastDispatcher;
          mLazyConnectivityManager = lazyConnectivityManager;
  
-@@ -96,7 +98,11 @@ public class AirplaneModeTile extends QSTileImpl<BooleanState> {
+@@ -99,7 +101,11 @@ public class AirplaneModeTile extends QSTileImpl<BooleanState> {
      }
  
      @Override
@@ -244,7 +236,7 @@ index 9a0d0d9656ca..bfa05cab0ff5 100644
          final boolean isEnabled = mState.value;
          // Immediately enter transient enabling state when turning bluetooth on.
 diff --git a/packages/SystemUI/src/com/android/systemui/qs/tiles/CellularTile.java b/packages/SystemUI/src/com/android/systemui/qs/tiles/CellularTile.java
-index 04a25fc193b3..e3999f443002 100644
+index 04a25fc193b3..7361c83ea6d8 100644
 --- a/packages/SystemUI/src/com/android/systemui/qs/tiles/CellularTile.java
 +++ b/packages/SystemUI/src/com/android/systemui/qs/tiles/CellularTile.java
 @@ -64,7 +64,7 @@ import com.android.systemui.statusbar.policy.KeyguardStateController;
@@ -256,11 +248,8 @@ index 04a25fc193b3..e3999f443002 100644
      private static final String ENABLE_SETTINGS_DATA_PLAN = "enable.settings.data.plan";
  
      private final NetworkController mController;
-@@ -84,10 +84,9 @@ public class CellularTile extends QSTileImpl<SignalState> {
-             QSLogger qsLogger,
-             NetworkController networkController,
-             KeyguardStateController keyguardStateController
--
+@@ -87,7 +87,7 @@ public class CellularTile extends QSTileImpl<SignalState> {
+ 
      ) {
          super(host, backgroundLooper, mainHandler, falsingManager, metricsLogger,
 -                statusBarStateController, activityStarter, qsLogger);
@@ -268,7 +257,7 @@ index 04a25fc193b3..e3999f443002 100644
          mController = networkController;
          mKeyguard = keyguardStateController;
          mDataController = mController.getMobileDataController();
-@@ -113,7 +112,11 @@ public class CellularTile extends QSTileImpl<SignalState> {
+@@ -113,7 +113,11 @@ public class CellularTile extends QSTileImpl<SignalState> {
      }
  
      @Override
@@ -415,17 +404,18 @@ index 624def60276b..b140d41a8a4b 100644
          if (!isEnabled && mDataSaverController.isDataSaverEnabled()) {
              return;
 diff --git a/packages/SystemUI/src/com/android/systemui/qs/tiles/InternetTile.java b/packages/SystemUI/src/com/android/systemui/qs/tiles/InternetTile.java
-index b8128dce606e..69e3f1b5c944 100644
+index 1b6203ee88ea..9fdcf974d789 100644
 --- a/packages/SystemUI/src/com/android/systemui/qs/tiles/InternetTile.java
 +++ b/packages/SystemUI/src/com/android/systemui/qs/tiles/InternetTile.java
-@@ -60,13 +60,14 @@ import com.android.systemui.statusbar.connectivity.NetworkController;
- import com.android.systemui.statusbar.connectivity.SignalCallback;
- import com.android.systemui.statusbar.connectivity.WifiIcons;
- import com.android.systemui.statusbar.connectivity.WifiIndicators;
+@@ -53,6 +53,7 @@ import com.android.systemui.qs.QSHost;
+ import com.android.systemui.qs.logging.QSLogger;
+ import com.android.systemui.qs.tileimpl.QSTileImpl;
+ import com.android.systemui.qs.tiles.dialog.InternetDialogFactory;
 +import com.android.systemui.statusbar.policy.KeyguardStateController;
- 
- import java.io.PrintWriter;
- 
+ import com.android.systemui.statusbar.connectivity.AccessPointController;
+ import com.android.systemui.statusbar.connectivity.IconState;
+ import com.android.systemui.statusbar.connectivity.MobileDataIndicators;
+@@ -66,7 +67,7 @@ import java.io.PrintWriter;
  import javax.inject.Inject;
  
  /** Quick settings tile: Internet **/
@@ -615,10 +605,10 @@ index b2be56cca51e..c523c3eeaaee 100644
          mState.copyTo(mStateBeforeClick);
          boolean wifiEnabled = mState.value;
 diff --git a/packages/SystemUI/src/com/android/systemui/qs/tiles/WorkModeTile.java b/packages/SystemUI/src/com/android/systemui/qs/tiles/WorkModeTile.java
-index 7130294deccb..3720bc3ada21 100644
+index 72c6bfe371ce..8d2cf2932b32 100644
 --- a/packages/SystemUI/src/com/android/systemui/qs/tiles/WorkModeTile.java
 +++ b/packages/SystemUI/src/com/android/systemui/qs/tiles/WorkModeTile.java
-@@ -42,11 +42,12 @@ import com.android.systemui.qs.QSHost;
+@@ -43,11 +43,12 @@ import com.android.systemui.qs.QSHost;
  import com.android.systemui.qs.logging.QSLogger;
  import com.android.systemui.qs.tileimpl.QSTileImpl;
  import com.android.systemui.statusbar.phone.ManagedProfileController;
@@ -632,7 +622,7 @@ index 7130294deccb..3720bc3ada21 100644
          ManagedProfileController.Callback {
      private final Icon mIcon = ResourceIcon.get(R.drawable.stat_sys_managed_profile_status);
  
-@@ -62,10 +63,11 @@ public class WorkModeTile extends QSTileImpl<BooleanState> implements
+@@ -63,10 +64,11 @@ public class WorkModeTile extends QSTileImpl<BooleanState> implements
              StatusBarStateController statusBarStateController,
              ActivityStarter activityStarter,
              QSLogger qsLogger,
@@ -646,7 +636,7 @@ index 7130294deccb..3720bc3ada21 100644
          mProfileController = managedProfileController;
          mProfileController.observe(getLifecycle(), this);
      }
-@@ -81,7 +83,11 @@ public class WorkModeTile extends QSTileImpl<BooleanState> implements
+@@ -82,7 +84,11 @@ public class WorkModeTile extends QSTileImpl<BooleanState> implements
      }
  
      @Override
@@ -660,5 +650,5 @@ index 7130294deccb..3720bc3ada21 100644
      }
  
 -- 
-2.38.2
+2.40.0
 

@@ -1,8 +1,8 @@
-From 6c04d6c53187d0d4cc66054c1b4bbb989fd3ef91 Mon Sep 17 00:00:00 2001
+From f6e799617e322ca5d6c52a8f1b3f537195b1a83a Mon Sep 17 00:00:00 2001
 From: electimon <electimon@hentaios.com>
 Date: Thu, 29 Dec 2022 04:30:06 +0000
-Subject: [PATCH] hwui: CanvasContext: Reduce the timeout for dequeueing
- buffers
+Subject: [PATCH 4/4] hwui: renderthread/CanvasContext: Reduce the timeout for
+ dequeueing buffers
 
 * QPR1 has introduced an issue on all moto-common projects where
 * OpenGLRenderer could fail to dequeue buffers sproradically
@@ -29,5 +29,5 @@ index 75d3ff7753cb..26c490e016a5 100644
      } else {
          mNativeSurface = nullptr;
 -- 
-2.39.2
+2.40.0
 

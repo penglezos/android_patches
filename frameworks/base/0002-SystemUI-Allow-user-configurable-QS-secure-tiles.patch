@@ -1,9 +1,8 @@
-From 9d6d3909b80f8a2d612aadbd2f9fc355e3d3a831 Mon Sep 17 00:00:00 2001
+From a1ea037cb17ab6a230c65db99929e809989e966f Mon Sep 17 00:00:00 2001
 From: penglezos <panagiotisegl@gmail.com>
-Date: Mon, 21 Nov 2022 11:30:38 +0200
-Subject: [PATCH 2/3] SystemUI: Allow user configurable QS secure tiles
+Date: Mon, 20 Mar 2023 23:56:17 +0200
+Subject: [PATCH 2/4] SystemUI: Allow user configurable QS secure tiles
 
-Change-Id: Ie7ae6b4fa5b8d5511016bfdbbefc3385ec80e577
 Signed-off-by: penglezos <panagiotisegl@gmail.com>
 ---
  .../src/com/android/systemui/qs/tiles/SecureQSTile.kt       | 6 +++++-
@@ -34,5 +33,5 @@ index 30a5461fbb59..db982acc457f 100644
  
      protected fun checkKeyguard(view: View?, keyguardShowing: Boolean): Boolean {
 -- 
-2.38.2
+2.40.0
 

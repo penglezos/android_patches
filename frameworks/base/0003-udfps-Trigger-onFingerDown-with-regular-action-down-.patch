@@ -1,7 +1,7 @@
-From e8491b29ef0c6a8b160ad668f0e76d5231cd5f9f Mon Sep 17 00:00:00 2001
+From 5daa562b967d3359ce3417a1e735e849e98f9de9 Mon Sep 17 00:00:00 2001
 From: Arian <arian.kulmer@web.de>
 Date: Tue, 12 Oct 2021 22:47:04 +0200
-Subject: [PATCH 3/3] udfps: Trigger onFingerDown with regular action down
+Subject: [PATCH 3/4] udfps: Trigger onFingerDown with regular action down
  events too
 
 Previously it was necessary to swipe over the udfps area before
@@ -13,10 +13,10 @@ Change-Id: Icf333f13bccfed9ba4ec030716d2bcf83841ef55
  1 file changed, 5 insertions(+)
 
 diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
-index 70aa6a3aa06e..167313e1fb57 100644
+index f3136babada6..48e06eef93a0 100644
 --- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
 +++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
-@@ -447,7 +447,12 @@ public class UdfpsController implements DozeReceiver {
+@@ -568,7 +568,12 @@ public class UdfpsController implements DozeReceiver, Dumpable {
                      // We need to persist its ID to track it during ACTION_MOVE that could include
                      // data for many other pointers because of multi-touch support.
                      mActivePointerId = event.getPointerId(0);
@@ -30,5 +30,5 @@ index 70aa6a3aa06e..167313e1fb57 100644
                      mAcquiredReceived = false;
                  }
 -- 
-2.38.2
+2.40.0
 
