@@ -1,0 +1,62 @@
+From 80beadd79e36bf56565f09a0f5753afdb445f9eb Mon Sep 17 00:00:00 2001
+From: penglezos <panagiotisegl@gmail.com>
+Date: Wed, 12 Apr 2023 21:12:26 +0300
+Subject: [PATCH] udfps: Disable Extra Dim on keyguard
+
+Change-Id: I7e159fdb92a9d4063262b71707ac5e9c53cca251
+Signed-off-by: penglezos <panagiotisegl@gmail.com>
+---
+ .../systemui/biometrics/UdfpsController.java   | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+index ec44eba96649..9ae3ff2ca2f9 100644
+--- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
++++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+@@ -188,6 +188,8 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+ 
+     private boolean mNightModeActive;
+     private int mAutoModeState;
++    private boolean mExtraDimActive = false;
++    
+ 
+     @VisibleForTesting
+     public static final VibrationAttributes UDFPS_VIBRATION_ATTRIBUTES =
+@@ -231,6 +233,7 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+         public void showUdfpsOverlay(long requestId, int sensorId, int reason,
+                 @NonNull IUdfpsOverlayControllerCallback callback) {
+             disableNightMode();
++            disableExtraDim();
+             mFgExecutor.execute(() -> UdfpsController.this.showUdfpsOverlay(
+                     new UdfpsControllerOverlay(mContext, mFingerprintManager, mInflater,
+                             mWindowManager, mAccessibilityManager, mStatusBarStateController,
+@@ -248,6 +251,7 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+         @Override
+         public void hideUdfpsOverlay(int sensorId) {
+             setNightMode(mNightModeActive, mAutoModeState);
++            setExtraDim(mExtraDimActive);
+             mFgExecutor.execute(() -> {
+                 if (mKeyguardUpdateMonitor.isFingerprintDetectionRunning()) {
+                     // if we get here, we expect keyguardUpdateMonitor's fingerprintRunningState
+@@ -1165,4 +1169,18 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+             colorDisplayManager.setNightDisplayAutoMode(autoMode);
+         }
+     }
++
++    private void disableExtraDim(){
++        ColorDisplayManager colorDisplayManager = mContext.getSystemService(ColorDisplayManager.class);
++        if (mColorDisplayManager.isReduceBrightColorsActivated()) {
++            mExtraDimActive = true;
++            mColorDisplayManager.setReduceBrightColorsActivated(false);
++        }
++    }
++    
++    private void setExtraDim() {
++        ColorDisplayManager colorDisplayManager = mContext.getSystemService(ColorDisplayManager.class);
++        mColorDisplayManager.setReduceBrightColorsActivated(mExtraDimActive);
++        mExtraDimActive = false;
++    }
+ }
+-- 
+2.40.0
+
