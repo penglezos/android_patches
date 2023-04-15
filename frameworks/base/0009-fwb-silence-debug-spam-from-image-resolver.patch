@@ -1,0 +1,26 @@
+From 3356b02b055abd5f35a093c9bbb329f667b0f76d Mon Sep 17 00:00:00 2001
+From: Dmitrii <bankersenator@gmail.com>
+Date: Fri, 7 Apr 2023 15:15:42 +0000
+Subject: [PATCH 2/2] fwb: silence debug spam from image resolver
+
+Signed-off-by: Dmitrii <bankersenator@gmail.com>
+---
+ core/java/com/android/internal/widget/LocalImageResolver.java | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/core/java/com/android/internal/widget/LocalImageResolver.java b/core/java/com/android/internal/widget/LocalImageResolver.java
+index 9ef7ce38fc09..740153cbeedc 100644
+--- a/core/java/com/android/internal/widget/LocalImageResolver.java
++++ b/core/java/com/android/internal/widget/LocalImageResolver.java
+@@ -236,7 +236,7 @@ public class LocalImageResolver {
+         // in some cases despite it not saying so. Rethrow it as an IOException to keep
+         // our API contract.
+         } catch (IOException | Resources.NotFoundException e) {
+-            Log.d(TAG, "Couldn't use ImageDecoder for drawable, falling back to non-resized load.");
++            //Log.d(TAG, "Couldn't use ImageDecoder for drawable, falling back to non-resized load.");
+             return null;
+         }
+     }
+-- 
+2.40.0
+
