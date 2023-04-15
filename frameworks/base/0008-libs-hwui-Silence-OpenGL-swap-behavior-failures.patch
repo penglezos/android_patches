@@ -1,0 +1,30 @@
+From 87652946ea9acf49c6b8ea63f725f1bb355451c2 Mon Sep 17 00:00:00 2001
+From: minaripenguin <minaripenguin@users.noreply.github.com>
+Date: Sun, 18 Dec 2022 05:38:24 +0800
+Subject: [PATCH 1/2] libs: hwui: Silence OpenGL swap behavior failures
+
+Signed-off-by: Dmitrii <bankersenator@gmail.com>
+---
+ libs/hwui/pipeline/skia/SkiaOpenGLPipeline.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/libs/hwui/pipeline/skia/SkiaOpenGLPipeline.cpp b/libs/hwui/pipeline/skia/SkiaOpenGLPipeline.cpp
+index 8e350d5012a5..9b0ccb632909 100644
+--- a/libs/hwui/pipeline/skia/SkiaOpenGLPipeline.cpp
++++ b/libs/hwui/pipeline/skia/SkiaOpenGLPipeline.cpp
+@@ -188,9 +188,9 @@ bool SkiaOpenGLPipeline::setSurface(ANativeWindow* surface, SwapBehavior swapBeh
+     }
+ 
+     if (mEglSurface != EGL_NO_SURFACE) {
+-        const bool preserveBuffer = (swapBehavior != SwapBehavior::kSwap_discardBuffer);
+-        const bool isPreserved = mEglManager.setPreserveBuffer(mEglSurface, preserveBuffer);
+-        ALOGE_IF(preserveBuffer != isPreserved, "Unable to match the desired swap behavior.");
++        //const bool preserveBuffer = (swapBehavior != SwapBehavior::kSwap_discardBuffer);
++        //const bool isPreserved = mEglManager.setPreserveBuffer(mEglSurface, preserveBuffer);
++        //ALOGE_IF(preserveBuffer != isPreserved, "Unable to match the desired swap behavior.");
+         return true;
+     }
+ 
+-- 
+2.40.0
+
