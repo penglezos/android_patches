@@ -1,0 +1,35 @@
+From a683eb4c4cd749f7ee0c18246144c1bfa4c025f2 Mon Sep 17 00:00:00 2001
+From: penglezos <panagiotisegl@gmail.com>
+Date: Fri, 5 May 2023 19:56:30 +0300
+Subject: [PATCH] PixelPropsUtils: Update fingerprints to May release
+
+Change-Id: I7f556814acca0b50d92b47203c3c3e3ad9b00095
+Signed-off-by: penglezos <panagiotisegl@gmail.com>
+---
+ .../com/android/internal/util/custom/PixelPropsUtils.java     | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/core/java/com/android/internal/util/custom/PixelPropsUtils.java b/core/java/com/android/internal/util/custom/PixelPropsUtils.java
+index 42ffe13616cb..1ac82f206dbf 100644
+--- a/core/java/com/android/internal/util/custom/PixelPropsUtils.java
++++ b/core/java/com/android/internal/util/custom/PixelPropsUtils.java
+@@ -101,14 +101,14 @@ public class PixelPropsUtils {
+         propsToChangePixel7Pro.put("DEVICE", "cheetah");
+         propsToChangePixel7Pro.put("PRODUCT", "cheetah");
+         propsToChangePixel7Pro.put("MODEL", "Pixel 7 Pro");
+-        propsToChangePixel7Pro.put("FINGERPRINT", "google/cheetah/cheetah:13/TQ2A.230305.008.C1/9619669:user/release-keys");
++        propsToChangePixel7Pro.put("FINGERPRINT", "google/cheetah/cheetah:13/TQ2A.230505.002/9891397:user/release-keys");
+         propsToChangePixel5 = new HashMap<>();
+         propsToChangePixel5.put("BRAND", "google");
+         propsToChangePixel5.put("MANUFACTURER", "Google");
+         propsToChangePixel5.put("DEVICE", "redfin");
+         propsToChangePixel5.put("PRODUCT", "redfin");
+         propsToChangePixel5.put("MODEL", "Pixel 5");
+-        propsToChangePixel5.put("FINGERPRINT", "google/redfin/redfin:13/TQ2A.230305.008.C1/9619669:user/release-keys");
++        propsToChangePixel5.put("FINGERPRINT", "google/redfin/redfin:13/TQ2A.230505.002/9891397:user/release-keys");
+         propsToChangePixelXL = new HashMap<>();
+         propsToChangePixelXL.put("BRAND", "google");
+         propsToChangePixelXL.put("MANUFACTURER", "Google");
+-- 
+2.40.1
+
