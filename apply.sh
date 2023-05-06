@@ -8,7 +8,7 @@
 echo $1
 rootdirectory="$PWD"
 
-dirs="build/make build/soong frameworks/base packages/apps/Settings packages/apps/Updater packages/modules/Wifi packages/modules/Connectivity lineage-sdk system/core"
+dirs="build/make build/soong frameworks/base packages/apps/Settings packages/apps/Updater packages/apps/Trebuchet packages/modules/Wifi packages/modules/Connectivity lineage-sdk system/core"
 
 for dir in $dirs ; do
 	cd $rootdirectory
