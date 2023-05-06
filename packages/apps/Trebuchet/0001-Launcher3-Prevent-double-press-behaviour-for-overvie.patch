@@ -1,0 +1,50 @@
+From 26d8fd2ad4a6abec4dc2e62ad32cce14ea2a90fa Mon Sep 17 00:00:00 2001
+From: minaripenguin <minaripenguin@users.noreply.github.com>
+Date: Sat, 29 Apr 2023 18:19:22 +0800
+Subject: [PATCH 1/2] Launcher3: Prevent double press behaviour for overview
+ actions
+
+test: perform consecutive button press for overview buttons check if tasks thumbnail comes back and forth for clear/kill
+
+Change-Id: I6b189f1b8fdb0ddb660d213ccd5de46daf4ba579
+Signed-off-by: minaripenguin <minaripenguin@users.noreply.github.com>
+Signed-off-by: penglezos <panagiotisegl@gmail.com>
+---
+ .../com/android/quickstep/views/OverviewActionsView.java   | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/quickstep/src/com/android/quickstep/views/OverviewActionsView.java b/quickstep/src/com/android/quickstep/views/OverviewActionsView.java
+index eeabdc83d1..03fd9557b0 100644
+--- a/quickstep/src/com/android/quickstep/views/OverviewActionsView.java
++++ b/quickstep/src/com/android/quickstep/views/OverviewActionsView.java
+@@ -19,6 +19,7 @@ package com.android.quickstep.views;
+ import android.content.Context;
+ import android.content.res.Configuration;
+ import android.graphics.Rect;
++import android.os.SystemClock;
+ import android.util.AttributeSet;
+ import android.view.View;
+ import android.view.View.OnClickListener;
+@@ -112,6 +113,7 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
+     @Nullable
+     protected DeviceProfile mDp;
+     private final Rect mTaskSize = new Rect();
++    private long onClickTime = 0;
+ 
+     public OverviewActionsView(Context context) {
+         this(context, null);
+@@ -150,6 +152,11 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
+         if (mCallbacks == null) {
+             return;
+         }
++        // let the animation finish by adding onclick timeout (500ms) 
++        if (SystemClock.elapsedRealtime() - onClickTime < 500){
++            return;
++        }
++        onClickTime = SystemClock.elapsedRealtime();
+         int id = view.getId();
+         if (id == R.id.action_screenshot) {
+             mCallbacks.onScreenshot();
+-- 
+2.40.1
+
