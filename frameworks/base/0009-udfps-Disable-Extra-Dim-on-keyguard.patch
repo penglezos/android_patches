@@ -25,7 +25,7 @@ index 9705d244f8ff..9a54d703e88d 100644
          if (mNightDisplayEnabled) {
              mColorDisplayManager.setNightDisplayActivated(false);
          }
-+        mExtraDimEnabled = mColorDisplayManager.setReduceBrightColorsActivated();
++        mExtraDimEnabled = mColorDisplayManager.isReduceBrightColorsActivated();
 +        if (mExtraDimEnabled) {
 +            mColorDisplayManager.setReduceBrightColorsActivated(false);
 +        }
