@@ -1,16 +1,30 @@
-From 7a808a89c2c202497c0e6b985f4bbda6e75a4beb Mon Sep 17 00:00:00 2001
-From: penglezos <panagiotisegl@gmail.com>
-Date: Fri, 5 May 2023 19:40:13 +0300
-Subject: [PATCH 1/2] udfps: Disable Night Light on keyguard
+From 9b54cbc3ca3f3b687529c5cc2f5b3f6e2d017688 Mon Sep 17 00:00:00 2001
+From: SuperDroidBond <superdroidbond@yahoo.com>
+Date: Thu, 30 Mar 2023 06:23:20 +0000
+Subject: [PATCH] udfps: Disable Night Light on keyguard
 
-Change-Id: I62c1f7ed75a0f188acfbbb0aaa3e423ba2c833b2
+FOD: allow user to disable night light when active [1/2]
+Make this optional for some devices and config for default true on devices which weird light sensors on FOD
+eg: OP7TPRO
+
+Remove FOD night light if not enabled by default [1/2]
+
+SDB: adapt it for A12 UDFPS by Google
+
+[elpaablo]: make it [1/1] and always disable night light when FOD is active
+
+Co-authored-by: Varun Date <date.varun123@gmail.com>
+Co-authored-by: Pranav Vashi <neobuddy89@gmail.com>
+Co-authored-by: SuperDroidBond <superdroidbond@yahoo.com>
+Change-Id: Ia07bfafa90508071c608d2ae738f9b97ded800d8
+Signed-off-by: SuperDroidBond <superdroidbond@yahoo.com>
 Signed-off-by: penglezos <panagiotisegl@gmail.com>
 ---
- .../android/systemui/biometrics/UdfpsController.java  | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ .../systemui/biometrics/UdfpsController.java  | 22 +++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
 diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
-index 48e06eef93a0..9705d244f8ff 100644
+index f3136babada6..0e46eaeece20 100644
 --- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
 +++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
 @@ -30,6 +30,7 @@ import android.content.IntentFilter;
@@ -21,51 +35,53 @@ index 48e06eef93a0..9705d244f8ff 100644
  import android.hardware.display.DisplayManager;
  import android.hardware.fingerprint.FingerprintManager;
  import android.hardware.fingerprint.FingerprintSensorProperties;
-@@ -120,6 +121,7 @@ public class UdfpsController implements DozeReceiver, Dumpable {
-     // Minimum required delay between consecutive touch logs in milliseconds.
-     private static final long MIN_TOUCH_LOG_INTERVAL = 50;
- 
-+    private final ColorDisplayManager mColorDisplayManager;
-     private final Context mContext;
-     private final Execution mExecution;
-     private final FingerprintManager mFingerprintManager;
-@@ -184,6 +186,7 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+@@ -184,6 +185,8 @@ public class UdfpsController implements DozeReceiver, Dumpable {
      private boolean mOnFingerDown;
      private boolean mAttemptedToDismissKeyguard;
      private final Set<Callback> mCallbacks = new HashSet<>();
-+    private boolean mNightDisplayEnabled;
++    private boolean mNightModeActive;
++    private int mAutoModeState;
  
      @VisibleForTesting
      public static final VibrationAttributes UDFPS_VIBRATION_ATTRIBUTES =
-@@ -751,6 +754,7 @@ public class UdfpsController implements DozeReceiver, Dumpable {
-         mConfigurationController = configurationController;
-         mSystemClock = systemClock;
-         mUnlockedScreenOffAnimationController = unlockedScreenOffAnimationController;
-+        mColorDisplayManager = context.getSystemService(ColorDisplayManager.class);
-         mLatencyTracker = latencyTracker;
-         mActivityLaunchAnimator = activityLaunchAnimator;
-         mAlternateTouchProvider = alternateTouchProvider.map(Provider::get).orElse(null);
-@@ -828,6 +832,10 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+@@ -226,6 +229,7 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+         @Override
+         public void showUdfpsOverlay(long requestId, int sensorId, int reason,
+                 @NonNull IUdfpsOverlayControllerCallback callback) {
++            disableNightMode();
+             mFgExecutor.execute(() -> UdfpsController.this.showUdfpsOverlay(
+                     new UdfpsControllerOverlay(mContext, mFingerprintManager, mInflater,
+                             mWindowManager, mAccessibilityManager, mStatusBarStateController,
+@@ -242,6 +246,7 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+ 
+         @Override
+         public void hideUdfpsOverlay(int sensorId) {
++            setNightMode(mNightModeActive, mAutoModeState);
+             mFgExecutor.execute(() -> {
+                 if (mKeyguardUpdateMonitor.isFingerprintDetectionRunning()) {
+                     // if we get here, we expect keyguardUpdateMonitor's fingerprintRunningState
+@@ -1142,4 +1147,21 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+          */
+         void onFingerDown();
      }
- 
-     private void showUdfpsOverlay(@NonNull UdfpsControllerOverlay overlay) {
-+        mNightDisplayEnabled = mColorDisplayManager.isNightDisplayActivated();
-+        if (mNightDisplayEnabled) {
-+            mColorDisplayManager.setNightDisplayActivated(false);
++
++    private void disableNightMode() {
++        ColorDisplayManager colorDisplayManager = mContext.getSystemService(ColorDisplayManager.class);
++        mAutoModeState = colorDisplayManager.getNightDisplayAutoMode();
++        mNightModeActive = colorDisplayManager.isNightDisplayActivated();
++        colorDisplayManager.setNightDisplayActivated(false);
++    }
++
++    private void setNightMode(boolean activated, int autoMode) {
++        ColorDisplayManager colorDisplayManager = mContext.getSystemService(ColorDisplayManager.class);
++        colorDisplayManager.setNightDisplayAutoMode(0);
++        if (autoMode == 0) {
++            colorDisplayManager.setNightDisplayActivated(activated);
++        } else if (autoMode == 1 || autoMode == 2) {
++            colorDisplayManager.setNightDisplayAutoMode(autoMode);
 +        }
-         mExecution.assertIsMainThread();
- 
-         mOverlay = overlay;
-@@ -849,6 +857,9 @@ public class UdfpsController implements DozeReceiver, Dumpable {
-     }
- 
-     private void hideUdfpsOverlay() {
-+        if (mNightDisplayEnabled) {
-+            mColorDisplayManager.setNightDisplayActivated(true);
-+        }
-         mExecution.assertIsMainThread();
- 
-         if (mOverlay != null) {
++    }
+ }
 -- 
 2.40.1
 
