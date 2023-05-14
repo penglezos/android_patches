@@ -1,0 +1,98 @@
+From 410529f42bd3ca50bd721dcc513d1052f3442825 Mon Sep 17 00:00:00 2001
+From: penglezos <panagiotisegl@gmail.com>
+Date: Sun, 14 May 2023 17:16:03 +0300
+Subject: [PATCH] udfps: Disable Night Light & Extra Dim on keyguard
+
+Change-Id: Ie88e752ba2a8a39df97b16e2dac53a791e93b677
+Signed-off-by: penglezos <panagiotisegl@gmail.com>
+---
+ .../systemui/biometrics/UdfpsController.java  | 39 +++++++++++++++++++
+ 1 file changed, 39 insertions(+)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+index f3136babada6..9b826eba4db3 100644
+--- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
++++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+@@ -30,6 +30,7 @@ import android.content.IntentFilter;
+ import android.graphics.Point;
+ import android.hardware.biometrics.BiometricFingerprintConstants;
+ import android.hardware.biometrics.SensorProperties;
++import android.hardware.display.ColorDisplayManager;
+ import android.hardware.display.DisplayManager;
+ import android.hardware.fingerprint.FingerprintManager;
+ import android.hardware.fingerprint.FingerprintSensorProperties;
+@@ -184,6 +185,10 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+     private boolean mOnFingerDown;
+     private boolean mAttemptedToDismissKeyguard;
+     private final Set<Callback> mCallbacks = new HashSet<>();
++    private final ColorDisplayManager mColorDisplayManager;
++    private boolean mNightModeActive;
++    private int mAutoModeState;
++    private boolean mExtraDimEnabled;
+ 
+     @VisibleForTesting
+     public static final VibrationAttributes UDFPS_VIBRATION_ATTRIBUTES =
+@@ -226,6 +231,8 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+         @Override
+         public void showUdfpsOverlay(long requestId, int sensorId, int reason,
+                 @NonNull IUdfpsOverlayControllerCallback callback) {
++            disableNightMode();
++            disableExtraDim();
+             mFgExecutor.execute(() -> UdfpsController.this.showUdfpsOverlay(
+                     new UdfpsControllerOverlay(mContext, mFingerprintManager, mInflater,
+                             mWindowManager, mAccessibilityManager, mStatusBarStateController,
+@@ -242,6 +249,8 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+ 
+         @Override
+         public void hideUdfpsOverlay(int sensorId) {
++            setNightMode(mNightModeActive, mAutoModeState);
++            setExtraDim();
+             mFgExecutor.execute(() -> {
+                 if (mKeyguardUpdateMonitor.isFingerprintDetectionRunning()) {
+                     // if we get here, we expect keyguardUpdateMonitor's fingerprintRunningState
+@@ -747,6 +756,7 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+         mSystemClock = systemClock;
+         mUnlockedScreenOffAnimationController = unlockedScreenOffAnimationController;
+         mLatencyTracker = latencyTracker;
++        mColorDisplayManager = context.getSystemService(ColorDisplayManager.class);
+         mActivityLaunchAnimator = activityLaunchAnimator;
+         mAlternateTouchProvider = alternateTouchProvider.map(Provider::get).orElse(null);
+         mSensorProps = new FingerprintSensorPropertiesInternal(
+@@ -1142,4 +1152,33 @@ public class UdfpsController implements DozeReceiver, Dumpable {
+          */
+         void onFingerDown();
+     }
++
++    private void disableNightMode() {
++        mAutoModeState = mColorDisplayManager.getNightDisplayAutoMode();
++        mNightModeActive = mColorDisplayManager.isNightDisplayActivated();
++        mColorDisplayManager.setNightDisplayActivated(false);
++    }
++
++    private void setNightMode(boolean activated, int autoMode) {
++        mColorDisplayManager.setNightDisplayAutoMode(0);
++        if (autoMode == 0) {
++            mColorDisplayManager.setNightDisplayActivated(activated);
++        } else if (autoMode == 1 || autoMode == 2) {
++            mColorDisplayManager.setNightDisplayAutoMode(autoMode);
++        }
++    }
++
++    public void disableExtraDim() {
++        mExtraDimEnabled = mColorDisplayManager.isReduceBrightColorsActivated();
++        if (mExtraDimEnabled) {
++            mColorDisplayManager.setReduceBrightColorsActivated(false);
++        }
++    }
++
++    public void setExtraDim(){
++        if (mExtraDimEnabled) {
++            mColorDisplayManager.setReduceBrightColorsActivated(true);
++        }
++    }
+ }
++ 
+\ No newline at end of file
+-- 
+2.40.1
+
