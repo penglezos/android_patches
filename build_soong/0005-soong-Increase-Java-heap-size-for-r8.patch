@@ -1,7 +1,7 @@
 From 753a9102428dbed1f57d063e74f0fcf2da4e11fb Mon Sep 17 00:00:00 2001
 From: penglezos <panagiotisegl@gmail.com>
 Date: Sun, 28 Jan 2024 14:58:47 +0200
-Subject: [PATCH 5/5] soong: Increase Java heap size for r8
+Subject: [PATCH 5/6] soong: Increase Java heap size for r8
 
 Change-Id: I1519159b2f1e14e9f4e299b5a26f06d21ce77165
 Signed-off-by: penglezos <panagiotisegl@gmail.com>

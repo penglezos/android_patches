@@ -1,7 +1,7 @@
 From 36677f7dfc20a180f4b88766a3be604b0c05531e Mon Sep 17 00:00:00 2001
 From: Michael W <baddaemon87@gmail.com>
 Date: Fri, 6 Jan 2023 21:00:01 +0800
-Subject: [PATCH 4/5] soong: Specify heap size for metalava for S+
+Subject: [PATCH 4/6] soong: Specify heap size for metalava for S+
 
 filiprrs: This is needed on systems with less than 16GB physical ram.
 Compiling using a single job is recommended.
