@@ -1,4 +1,4 @@
-From 36677f7dfc20a180f4b88766a3be604b0c05531e Mon Sep 17 00:00:00 2001
+From 7bdae1bebb4fe38beb1d954dd9811ce3459755e3 Mon Sep 17 00:00:00 2001
 From: Michael W <baddaemon87@gmail.com>
 Date: Fri, 6 Jan 2023 21:00:01 +0800
 Subject: [PATCH 4/6] soong: Specify heap size for metalava for S+

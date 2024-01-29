@@ -1,4 +1,4 @@
-From 1c339d95f30605898ea1f676aaf29b71e541a99e Mon Sep 17 00:00:00 2001
+From 154bd2bbd6b87f37a71988fb9256bb3b4edc46d9 Mon Sep 17 00:00:00 2001
 From: Park Ju Hyung <qkrwngud825@gmail.com>
 Date: Sat, 31 Oct 2020 19:15:24 +0900
 Subject: [PATCH 1/6] ui: Pass the exact CPU thread count to -j

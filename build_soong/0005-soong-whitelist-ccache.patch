@@ -1,7 +1,7 @@
-From a7755166ab813a1a79c060f1be9bc946894d34be Mon Sep 17 00:00:00 2001
+From fe6b6019e46a6203315ed8ece5b87a018fcc11b2 Mon Sep 17 00:00:00 2001
 From: Anay Wadhera <awadhera@berkeley.edu>
 Date: Fri, 29 May 2020 23:42:11 -0700
-Subject: [PATCH 6/6] soong: whitelist ccache
+Subject: [PATCH 5/6] soong: whitelist ccache
 
 Change-Id: I68e5321804c8b1b4a6fcd4690de197440bef6ea6
 Signed-off-by: penglezos <panagiotisegl@gmail.com>
