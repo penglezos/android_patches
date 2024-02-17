@@ -1,7 +1,7 @@
 From abaa3780700c48ffe6d050fd91cb6d8c2bf29f64 Mon Sep 17 00:00:00 2001
 From: penglezos <panagiotisegl@gmail.com>
 Date: Sat, 17 Feb 2024 18:58:43 +0200
-Subject: [PATCH 2/3] hwui: Silence OpenGLRenderer logspam
+Subject: [PATCH 2/8] hwui: Silence OpenGLRenderer logspam
 
 Change-Id: Iec470cdebe46a87b8e4e58b4e9c115b2e45a5be5
 Signed-off-by: penglezos <panagiotisegl@gmail.com>
