@@ -1,0 +1,27 @@
+From c282d2c87afd50cb633c8dfebc79cfc2331870d0 Mon Sep 17 00:00:00 2001
+From: penglezos <panagiotisegl@gmail.com>
+Date: Sat, 17 Feb 2024 23:36:09 +0200
+Subject: [PATCH 2/2] init: Spoof build type & debuggable status
+
+Change-Id: I9981083f73d58119e2b7e5f2fa1ada6769934846
+Signed-off-by: penglezos <panagiotisegl@gmail.com>
+---
+ init/property_service.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/init/property_service.cpp b/init/property_service.cpp
+index b5d5fb0a0..49a0ef92f 100644
+--- a/init/property_service.cpp
++++ b/init/property_service.cpp
+@@ -1366,6 +1366,8 @@ static void SetSafetyNetProps() {
+     InitPropertySet("ro.boot.vbmeta.device_state", "locked");
+     InitPropertySet("ro.boot.verifiedbootstate", "green");
+     InitPropertySet("ro.boot.veritymode", "enforcing");
++    InitPropertySet("ro.build.type", "user");
++    InitPropertySet("ro.debuggable", "0");
+ 
+ }
+ 
+-- 
+2.43.1
+
