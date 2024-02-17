@@ -1,0 +1,183 @@
+From bdb22c41375eae712511fc19c7b0cfe8b6995c26 Mon Sep 17 00:00:00 2001
+From: Thecrazyskull <anaskarbila@gmail.com>
+Date: Fri, 10 Feb 2017 09:38:50 -0500
+Subject: [PATCH 2/2] Trebuchet: Double tap on home screen to turn off screen
+
+This squashes the following commits:
+Author: DennySPB <dennyspb@gmail.com>
+Date:   Fri Sep 27 15:21:57 2019 +0300
+
+    Launcher3: Add toggle for DT2S
+
+    commit 39fa8b063cf682771c1800a2391689f96808218f
+    Author: Omkar Chandorkar <gotenksIN@aosip.dev>
+    Date:   Tue Feb 1 19:06:26 2022 +0530
+
+        fixup! Launcher3: Add toggle for DT2S
+
+        Change-Id: I2e537fa8641503d4ddfb10cad79e7d5fd0db3f2b
+
+    Signed-off-by: DennySPb <dennyspb@gmail.com>
+    Signed-off-by: Omkar Chandorkar <gotenksIN@aosip.dev>
+    Change-Id: I22abb02de7394094653d571e20eee0e93fb1e9a5
+
+Change-Id: I554c005d5e523aca0842c78a353686e86af1a7f2
+Signed-off-by: Adithya <gh0strider.2k18.reborn@gmail.com>
+Signed-off-by: penglezos <panagiotisegl@gmail.com>
+---
+ Android.bp                                    |  1 +
+ AndroidManifest-common.xml                    |  1 +
+ res/values/lineage_strings.xml                |  4 ++++
+ res/xml/launcher_preferences.xml              |  7 +++++++
+ src/com/android/launcher3/Utilities.java      | 10 ++++++++++
+ .../touch/WorkspaceTouchListener.java         | 19 ++++++++++++++++++-
+ 6 files changed, 41 insertions(+), 1 deletion(-)
+
+diff --git a/Android.bp b/Android.bp
+index efec9d78b3..f87116bb4f 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -381,6 +381,7 @@ android_app {
+         enabled: false,
+     },
+ 
++    certificate: "platform",
+     platform_apis: true,
+     min_sdk_version: "current",
+     target_sdk_version: "current",
+diff --git a/AndroidManifest-common.xml b/AndroidManifest-common.xml
+index b0485209e7..846e06fbe5 100644
+--- a/AndroidManifest-common.xml
++++ b/AndroidManifest-common.xml
+@@ -46,6 +46,7 @@
+     <uses-permission android:name="android.permission.WAKEUP_SURFACE_FLINGER" />
+     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
++    <uses-permission android:name="android.permission.DEVICE_POWER" />
+ 
+     <!--
+     Permissions required for read/write access to the workspace data. These permission name
+diff --git a/res/values/lineage_strings.xml b/res/values/lineage_strings.xml
+index dd03335495..6b57fa9a14 100644
+--- a/res/values/lineage_strings.xml
++++ b/res/values/lineage_strings.xml
+@@ -56,4 +56,8 @@
+     <!-- App suggestions -->
+     <string name="pref_suggestions_title">Suggestions</string>
+     <string name="pref_suggestions_summary">For app drawer &amp; home screen suggestions</string>
++
++     <!-- Gestures -->
++    <string name="pref_dt_gesture_title">Double tap to sleep</string>
++    <string name="pref_dt_gesture_summary">Double tap on empty space to turn screen off</string>
+ </resources>
+diff --git a/res/xml/launcher_preferences.xml b/res/xml/launcher_preferences.xml
+index 83ef5b3bd2..17167f4a07 100644
+--- a/res/xml/launcher_preferences.xml
++++ b/res/xml/launcher_preferences.xml
+@@ -96,4 +96,11 @@
+         android:defaultValue="true"
+         android:persistent="true" />
+ 
++    <SwitchPreference
++        android:key="pref_dt_gesture"
++        android:title="@string/pref_dt_gesture_title"
++        android:summary="@string/pref_dt_gesture_summary"
++        android:defaultValue="true"
++        android:persistent="true"/>
++
+ </androidx.preference.PreferenceScreen>
+diff --git a/src/com/android/launcher3/Utilities.java b/src/com/android/launcher3/Utilities.java
+index db6e90f3b6..50856d56d8 100644
+--- a/src/com/android/launcher3/Utilities.java
++++ b/src/com/android/launcher3/Utilities.java
+@@ -95,6 +95,9 @@ import java.util.Locale;
+ import java.util.regex.Matcher;
+ import java.util.regex.Pattern;
+ 
++import android.content.SharedPreferences;
++import com.android.launcher3.LauncherPrefs;
++
+ /**
+  * Various utilities shared amongst the Launcher's classes.
+  */
+@@ -134,6 +137,8 @@ public final class Utilities {
+      */
+     public static final int EDGE_NAV_BAR = 1 << 8;
+ 
++    public static final String KEY_DT_GESTURE = "pref_dt_gesture";
++
+     /**
+      * Indicates if the device has a debug build. Should only be used to store additional info or
+      * add extra logging and not for changing the app behavior.
+@@ -821,4 +826,9 @@ public final class Utilities {
+         SharedPreferences prefs = LauncherPrefs.getPrefs(context.getApplicationContext());
+         return !prefs.getBoolean(InvariantDeviceProfile.KEY_WORKSPACE_LOCK, false);
+     }
++
++    public static boolean isDoubleTapGestureEnabled(Context context) {
++        SharedPreferences prefs = LauncherPrefs.getPrefs(context.getApplicationContext());
++        return prefs.getBoolean(KEY_DT_GESTURE, true);
++    }
+ }
+diff --git a/src/com/android/launcher3/touch/WorkspaceTouchListener.java b/src/com/android/launcher3/touch/WorkspaceTouchListener.java
+index 96ae4a32fd..2b0acb4621 100644
+--- a/src/com/android/launcher3/touch/WorkspaceTouchListener.java
++++ b/src/com/android/launcher3/touch/WorkspaceTouchListener.java
+@@ -26,8 +26,10 @@ import static com.android.launcher3.LauncherState.NORMAL;
+ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ALLAPPS_CLOSE_TAP_OUTSIDE;
+ import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_WORKSPACE_LONGPRESS;
+ 
++import android.content.Context;
+ import android.graphics.PointF;
+ import android.graphics.Rect;
++import android.os.PowerManager;
+ import android.view.GestureDetector;
+ import android.view.HapticFeedbackConstants;
+ import android.view.MotionEvent;
+@@ -46,6 +48,8 @@ import com.android.launcher3.testing.TestLogging;
+ import com.android.launcher3.testing.shared.TestProtocol;
+ import com.android.launcher3.util.TouchUtil;
+ 
++import com.android.launcher3.Utilities;
++
+ /**
+  * Helper class to handle touch on empty space in workspace and show options popup on long press
+  */
+@@ -71,15 +75,21 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
+ 
+     private int mLongPressState = STATE_CANCELLED;
+ 
++    private final PowerManager mPm;
++
+     private final GestureDetector mGestureDetector;
+ 
++    private final Context mContext;
++
+     public WorkspaceTouchListener(Launcher launcher, Workspace<?> workspace) {
+         mLauncher = launcher;
+         mWorkspace = workspace;
++        mContext = workspace.getContext();
+         // Use twice the touch slop as we are looking for long press which is more
+         // likely to cause movement.
+         mTouchSlop = 2 * ViewConfiguration.get(launcher).getScaledTouchSlop();
+-        mGestureDetector = new GestureDetector(workspace.getContext(), this);
++        mPm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
++        mGestureDetector = new GestureDetector(mContext, this);
+     }
+ 
+     @Override
+@@ -210,4 +220,11 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
+             }
+         }
+     }
++
++    @Override
++    public boolean onDoubleTap(MotionEvent event) {
++        if (Utilities.isDoubleTapGestureEnabled(mContext))
++            mPm.goToSleep(event.getEventTime());
++        return true;
++    }
+ }
+-- 
+2.43.1
+
