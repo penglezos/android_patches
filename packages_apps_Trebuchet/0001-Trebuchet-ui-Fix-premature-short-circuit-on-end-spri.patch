@@ -1,0 +1,78 @@
+From f1f484be0cee55d4e2453d7d17a4972fe5ffee77 Mon Sep 17 00:00:00 2001
+From: Dan Choi <ygdanchoi@gmail.com>
+Date: Mon, 9 Jan 2023 02:50:05 -0500
+Subject: [PATCH] Trebuchet: ui: Fix premature short-circuit on end spring anim
+
+RectFSpringAnim represents the delightful animation where a closing
+window gradually fades and settles into the launcher icon or widget it
+was originally opened from. Unfortunately, double-tapping the home
+button causes this animation to freeze:
+
+https://issuetracker.google.com/issues/258314409
+
+This is due to a race condition where the animation updates are halted
+before the final one can reach its listener, QuickStepTransitionManager.
+
+RectFSpringAnim.onUpdate normally updates its listeners frame-by-frame,
+but this can be short-circuited via isEnded() if all of mRectXAnimEnded,
+mRectYAnimEnded, and mRectScaleAnimEnded are true. RectFSpringAnim.end,
+which is called when the user "fast-finishes" the closing window
+animation, prematurely sets these 3 flags to true, preventing the final
+onUpdateListener.onUpdate from notifying QuickStepTransitionManager that
+it should set the window alpha to 0. Thus, the animation hangs.
+
+This can be resolved by no longer setting the 3 flags to true in
+RectFSpringAnim.end. These flags conceptually represent an n=3 countdown
+latch that releases maybeOnEnd(). This can be trusted to proceed with
+the correct timings as the x-translation, y-translation, and scale
+animations' OnAnimationEndListeners are invoked on their own.
+
+Test: m Launcher3QuickStep && adb install -r -d \
+$OUT/system_ext/priv-app/Launcher3QuickStep/Launcher3QuickStep.apk
+- Optional: Set Animator duration scale = Animation scale 5x
+- Open app via launcher icon, launcher widget, or app list
+- Close app, then "fast-finish" while animation is still running
+  - 3-button navigation: Double-tap home button
+  - Gesture navigation: Swipe up, then tap anywhere
+
+BEFORE
+
+|                     | 3-button nav              | Gesture nav       |
+|---------------------|---------------------------|-------------------|
+| Opened via icon     | Anim freezes (!)          | Anim skips to end |
+| Opened via widget   | Anim freezes (!)          | Anim skips to end |
+| Opened via app list | Anim does not skip to end | Anim skips to end |
+
+AFTER
+
+|                     | 3-button nav              | Gesture nav       |
+|---------------------|---------------------------|-------------------|
+| Opened via icon     | Anim skips to end         | Anim skips to end |
+| Opened via widget   | Anim skips to end         | Anim skips to end |
+| Opened via app list | Anim does not skip to end | Anim skips to end |
+
+Change-Id: I051fd0a244eb5da464fb24b7e5b4701b9136bed7
+Signed-off-by: Dan Choi <ygdanchoi@gmail.com>
+Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
+---
+ quickstep/src/com/android/quickstep/util/RectFSpringAnim.java | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/quickstep/src/com/android/quickstep/util/RectFSpringAnim.java b/quickstep/src/com/android/quickstep/util/RectFSpringAnim.java
+index 251b7567b1..f8da847e9b 100644
+--- a/quickstep/src/com/android/quickstep/util/RectFSpringAnim.java
++++ b/quickstep/src/com/android/quickstep/util/RectFSpringAnim.java
+@@ -282,10 +282,6 @@ public class RectFSpringAnim extends ReleaseCheck {
+                 mRectScaleAnim.skipToEnd();
+             }
+         }
+-        mRectXAnimEnded = true;
+-        mRectYAnimEnded = true;
+-        mRectScaleAnimEnded = true;
+-        maybeOnEnd();
+     }
+ 
+     private boolean isEnded() {
+-- 
+2.43.1
+
