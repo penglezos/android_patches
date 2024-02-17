@@ -1,0 +1,23 @@
+From cb3e42999dce227b9b218e4736d18509ed1be313 Mon Sep 17 00:00:00 2001
+From: Adithya R <gh0strider.2k18.reborn@gmail.com>
+Date: Fri, 8 Dec 2023 06:03:09 +0530
+Subject: [PATCH] sepolicy: Allow gmscore_app to set system_prop
+
+Required to set spoofing properties for native PIHooks.
+
+Change-Id: If3ecf44cd471ed5cd4f26b263a27d0d208167cb5
+---
+ common/private/gmscore_app.te | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 common/private/gmscore_app.te
+
+diff --git a/common/private/gmscore_app.te b/common/private/gmscore_app.te
+new file mode 100644
+index 0000000..3d2a68c
+--- /dev/null
++++ b/common/private/gmscore_app.te
+@@ -0,0 +1 @@
++set_prop(gmscore_app, system_prop)
+-- 
+2.43.1
+
