@@ -1,0 +1,28 @@
+From 85ab56082e7d86cb3614748edbe27eeac46a86e7 Mon Sep 17 00:00:00 2001
+From: penglezos <panagiotisegl@gmail.com>
+Date: Sun, 18 Feb 2024 18:32:48 +0200
+Subject: [PATCH] Build Certification overlay package if it exists
+
+Change-Id: I5ac37d6de5ae636b982a1024289935d7de627af7
+Signed-off-by: penglezos <panagiotisegl@gmail.com>
+---
+ config/common.mk | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/config/common.mk b/config/common.mk
+index 7ea412e8..1b7e201d 100644
+--- a/config/common.mk
++++ b/config/common.mk
+@@ -50,6 +50,9 @@ PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+ endif
+ endif
+ 
++# Certification
++$(call inherit-product-if-exists, vendor/certification/config.mk)
++
+ # Lineage-specific broadcast actions whitelist
+ PRODUCT_COPY_FILES += \
+     vendor/lineage/config/permissions/lineage-sysconfig.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/sysconfig/lineage-sysconfig.xml
+-- 
+2.43.1
+
