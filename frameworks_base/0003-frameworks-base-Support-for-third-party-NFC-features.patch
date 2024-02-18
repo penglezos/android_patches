@@ -1,4 +1,4 @@
-From 47733a96ed00ae9866fc2976c558f385129b663d Mon Sep 17 00:00:00 2001
+From 81e2f6e5a6929b2a476bc1ee79b6830489c8e8c4 Mon Sep 17 00:00:00 2001
 From: Puneet Mishra <puneetm@codeaurora.org>
 Date: Tue, 24 Nov 2015 14:37:38 +0000
 Subject: [PATCH 3/8] frameworks/base: Support for third party NFC features and

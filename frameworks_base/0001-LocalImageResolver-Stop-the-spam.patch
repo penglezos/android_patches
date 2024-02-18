@@ -1,4 +1,4 @@
-From ecfe686834ff2ff24343667c1b44d204e2c13ff7 Mon Sep 17 00:00:00 2001
+From af8a9afe622570015d9e11c691129fe8dfc1a5e6 Mon Sep 17 00:00:00 2001
 From: penglezos <panagiotisegl@gmail.com>
 Date: Sat, 17 Feb 2024 18:56:29 +0200
 Subject: [PATCH 1/8] LocalImageResolver: Stop the spam

@@ -1,4 +1,4 @@
-From 287b39a031a358c7d67bb368af69f9fdd771e13e Mon Sep 17 00:00:00 2001
+From 78da88400781f71746fa722c2186e3300bdcb4b9 Mon Sep 17 00:00:00 2001
 From: Adithya R <gh0strider.2k18.reborn@gmail.com>
 Date: Sat, 18 Nov 2023 20:08:08 +0530
 Subject: [PATCH 5/8] PIHooks: Allow setting any field in certified build props

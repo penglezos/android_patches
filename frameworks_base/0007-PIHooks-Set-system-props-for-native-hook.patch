@@ -1,4 +1,4 @@
-From c070be916642a6ed11ae40495aba0e69553a580c Mon Sep 17 00:00:00 2001
+From 99077552c804518523671884faaa0619c53dfc81 Mon Sep 17 00:00:00 2001
 From: Adithya R <gh0strider.2k18.reborn@gmail.com>
 Date: Fri, 8 Dec 2023 05:59:39 +0530
 Subject: [PATCH 7/8] PIHooks: Set system props for native hook
