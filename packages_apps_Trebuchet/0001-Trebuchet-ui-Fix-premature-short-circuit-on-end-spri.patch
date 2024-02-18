@@ -53,7 +53,6 @@ AFTER
 
 Change-Id: I051fd0a244eb5da464fb24b7e5b4701b9136bed7
 Signed-off-by: Dan Choi <ygdanchoi@gmail.com>
-Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
 ---
  quickstep/src/com/android/quickstep/util/RectFSpringAnim.java | 4 ----
  1 file changed, 4 deletions(-)
